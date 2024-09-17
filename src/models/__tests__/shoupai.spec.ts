@@ -143,8 +143,6 @@ describe("useShoupai", () => {
     f=new Fulou("jiagang",new Pai("m",3),createPais(["3m","3m","3m"]))
     expect(()=>{s.value.doFulou(f)}).toThrowError()
 
-
-
   })
   
 });
