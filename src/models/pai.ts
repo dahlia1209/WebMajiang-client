@@ -1,15 +1,23 @@
-import { ref, onMounted, onUnmounted } from "vue";
+import { type Ref, ref, onMounted, onUnmounted } from "vue";
+import { v4 as uuidv4 } from "uuid";
+import { type PaiSuit } from "./type";
 
-export type PaiSuit = "b" | "m" | "p" | "s" | "z";
 export class Pai {
   readonly suit: PaiSuit;
   readonly num: number;
   readonly isRed: boolean;
+  readonly id: string;
 
-  constructor(suit: PaiSuit, num: number, is_red: boolean = false) {
+  constructor(
+    suit: PaiSuit,
+    num: number,
+    isRed: boolean = false,
+    id: string = uuidv4()
+  ) {
     this.suit = suit;
     this.num = this.validateNum(num, suit);
-    this.isRed = this.validateIsRed(is_red, suit, num);
+    this.isRed = this.validateIsRed(isRed, suit, num);
+    this.id = id;
   }
 
   private validateNum(num: number, suit: PaiSuit): number {
@@ -28,23 +36,32 @@ export class Pai {
   }
 
   private validateIsRed(is_red: boolean, suit: PaiSuit, num: number): boolean {
-    if (is_red && (suit === "z"||suit === "m" || num !== 5)) {
+    if (is_red && (suit === "z" || suit === "b" || num !== 5)) {
       throw new Error("Only 5 in suits m, p, s can be red dora");
     }
     return is_red;
   }
 
-  equals(other: Pai): boolean {
-    return (
-      this.num === other.num &&
-      this.suit === other.suit &&
-      this.isRed === other.isRed
-    );
+  equals(other: Pai, isRed: boolean = false): boolean {
+    if (isRed) {
+      return (
+        this.num === other.num &&
+        this.suit === other.suit &&
+        this.isRed === other.isRed
+      );
+    } else {
+      return this.num === other.num && this.suit === other.suit;
+    }
   }
+
+  name() {
+    const numStr = this.isRed && this.num == 5 ? "0" : this.num.toString();
+    return this.suit.toString() + numStr;
+  }
+
 }
 
-export const usePai = (suit: PaiSuit, num: number, is_red: boolean = false) => {
-  const pai = new Pai(suit, num, is_red);
-
-  return pai;
+export const usePai = (pai: Pai) => {
+  const reavtivePai = ref(pai);
+  return reavtivePai;
 };

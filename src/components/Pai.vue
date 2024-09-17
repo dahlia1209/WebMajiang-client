@@ -1,30 +1,24 @@
 <script setup lang="ts">
-import { usePai, type PaiSuit } from '@/models/pai'
+import { usePai,  type Pai } from '@/models/pai'
 
 const props = defineProps<{
-    suit: PaiSuit
-    num: number
-    isRed?: boolean
+    pai: Pai
 }>()
 
-const pai = usePai(props.suit, props.num, props.isRed)
-const paiName=()=>{
-    const numStr = pai.isRed && pai.num == 5 ? '0' : pai.num.toString()
-    return pai.suit.toString() + numStr
-}
+const p = usePai(props.pai)
 const generateImgPath = (): string => {
-    return new URL(`../assets/pai/${paiName()}.gif`, import.meta.url).href
+    return new URL(`../assets/pai/${p.value.name()}.gif`, import.meta.url).href
 }
 
 </script>
 
 <template>
-    <img :src="generateImgPath()" :name="paiName()" @click="" />
+    <img :src="generateImgPath()" :name="p.name()"  />
 </template>
 
 <style scoped>
 img {
-  user-select: none;
+    user-select: none;
 }
 
 </style>

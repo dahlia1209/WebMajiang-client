@@ -2,16 +2,40 @@
 import { ref } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
-import Pai from './components/Pai.vue'
-import Shoupai from './components/Shoupai.vue'
-import { usePai, type PaiSuit, type Pai as PaiModel } from '@/models/pai'
+import PaiView from './components/Pai.vue'
+import ShoupaiView from './components/Shoupai.vue'
+import { usePai, Pai } from '@/models/pai'
+import { type PaiSuit } from "@/models/type"
+import { useShoupai, Shoupai, createPais, Fulou } from "@/models/shoupai";
+import { useGameStore } from '@/stores/game'
 
-const isStart = ref(false)
-const switchMessage = ref("Start")
+const gameStore = useGameStore()
+gameStore.action = "打牌"
+gameStore.status = "ready"
+gameStore.turn = "xiajia"
+gameStore.dapai = new Pai('m', 3)
+
+let bingpai: Pai[];
+let zimo: Pai;
+let fulou: Fulou[];
+let waitingFulouPai: Fulou[];
+let waitingHulePai: Pai[];
+bingpai = createPais(['1s', '3m', '3m', '3z'])
+// bingpai = createPais(['1m', '2m','3m','4m','5m','6m','7m','8m','9m','1p','1p','3p','4p',])
+// zimo = new Pai('z', 3)
+fulou = [
+  new Fulou("peng", new Pai("z", 3), createPais(["3z", "3z"]), 'duimian'),
+  new Fulou("peng", new Pai("p", 3), createPais(["3p", "3p"]), 'xiajia'),
+  new Fulou("chi", new Pai("p", 1), createPais(["2p", "3p"]), 'shangjia'),
+]
+waitingFulouPai = [
+  new Fulou("jiagang", new Pai("z", 3), createPais(["3z", "3z", "3z"])),
+]
+gameStore.waitingFulouPai = waitingFulouPai
 </script>
 
 <template>
-  <header v-if="!isStart">
+  <!-- <header v-if="!isStart">
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
@@ -22,25 +46,20 @@ const switchMessage = ref("Start")
 
   <main v-if="!isStart">
     <TheWelcome />
+  </main> -->
+
+  <main>
+    <ShoupaiView :shoupai="new Shoupai('main', bingpai, zimo, fulou, waitingHulePai, waitingFulouPai)" />
   </main>
-
-  <!-- ここから -->
-  <div class="green start" v-if="!isStart" @click="isStart = !isStart; switchMessage = isStart ? 'Home' : 'Start'">
-    {{ switchMessage }}
-  </div>
-
-  <div v-if="isStart">
-    <Shoupai
-      :bingpai="[usePai('m', 1), usePai('m', 2), usePai('m', 3),
-       usePai('m', 4), usePai('m', 5), usePai('m', 6), usePai('m', 7), 
-       usePai('m', 8), usePai('m', 9), usePai('p', 1), usePai('p', 1), 
-       usePai('s', 1), usePai('z', 2)]" />
-  </div>
 </template>
 
 <style scoped>
+main {
+  width: 100%;
+}
+
 header {
-  line-height: 1.5; 
+  line-height: 1.5;
 }
 
 .logo {
