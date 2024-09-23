@@ -10,12 +10,12 @@ const props = defineProps<{
 }>()
 
 const f = useFulou(props.fulou)
-const pais = [...f.value.fuloupais, ...(f.value.nakipai ? [f.value.nakipai] : [])]
+const pais=f.value.fuloupais
 const key = (function () {
     if (f.value.position == 'main') {
         return -1
     } else if (f.value.position == 'xiajia') {
-        return pais.length - 1
+        return pais.length
     } else if (f.value.position == "duimian") {
         return 1
     } else if (f.value.position == "shangjia") {
@@ -24,6 +24,8 @@ const key = (function () {
         return -1
     }
 })();
+if (f.value.nakipai) pais.splice(key,0,f.value.nakipai as Pai)
+
 </script>
 
 <template>

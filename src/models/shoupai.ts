@@ -33,17 +33,17 @@ export class Shoupai {
   zimopai;
   waitingHulePai;
   waitingFulouPai;
-  position: Position;
+  // position: Position;
 
   constructor(
-    position: Position,
+    // position: Position,
     bingpai: Pai[] = [],
     zimopai: Pai | null = null,
     fulou: Fulou[] = [],
     waitingHulePai: Pai[] = [],
     waitingFulouPai: Fulou[] = []
   ) {
-    this.position = position;
+    // this.position = position;
     this.bingpai = bingpai;
     fulou.forEach((f) => this.addFulou(f));
     this.zimopai = zimopai;
@@ -143,7 +143,6 @@ export class Shoupai {
       const matchedBingpaiIdx = [...this.bingpai, this.zimopai].findIndex(
         (bz) => bz && bz.equals(this.fulou[matchedFulouIndex].nakipai!)
       );
-      console.log("matchedBingpaiIdx", matchedBingpaiIdx);
       let pai;
       if (matchedBingpaiIdx < 0) {
         throw Error(`${fulou.type}ができません。`);

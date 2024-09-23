@@ -4,34 +4,41 @@ import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
 import PaiView from './components/Pai.vue'
 import ShoupaiView from './components/Shoupai.vue'
+import HeView from './components/He.vue'
 import { usePai, Pai } from '@/models/pai'
-import { type PaiSuit } from "@/models/type"
-import { useShoupai, Shoupai, createPais, Fulou } from "@/models/shoupai";
+import { type PlayerAction } from "@/models/type"
+import {  Shoupai, createPais, Fulou } from "@/models/shoupai";
+import { He } from "@/models/he";
 import { useGameStore } from '@/stores/game'
 
 const gameStore = useGameStore()
-gameStore.action = "打牌"
-gameStore.status = "ready"
-gameStore.turn = "xiajia"
-gameStore.dapai = new Pai('m', 3)
+gameStore.action = "dapai"
+gameStore.status = "thinking"
+gameStore.turn = "main"
+gameStore.zimopai = new Pai('s', 2)
 
 let bingpai: Pai[];
-let zimo: Pai;
+let zimo: Pai=new Pai("s", 3);
 let fulou: Fulou[];
-let waitingFulouPai: Fulou[];
+let canFulouList: Fulou[];
 let waitingHulePai: Pai[];
-bingpai = createPais(['1s', '3m', '3m', '3z'])
-// bingpai = createPais(['1m', '2m','3m','4m','5m','6m','7m','8m','9m','1p','1p','3p','4p',])
-// zimo = new Pai('z', 3)
+bingpai = createPais(['1m', '2m', '3m', '4m'])
 fulou = [
   new Fulou("peng", new Pai("z", 3), createPais(["3z", "3z"]), 'duimian'),
   new Fulou("peng", new Pai("p", 3), createPais(["3p", "3p"]), 'xiajia'),
   new Fulou("chi", new Pai("p", 1), createPais(["2p", "3p"]), 'shangjia'),
 ]
-waitingFulouPai = [
-  new Fulou("jiagang", new Pai("z", 3), createPais(["3z", "3z", "3z"])),
+canFulouList = [
+  // new Fulou("chi", new Pai("s", 2), createPais(["1s", "3s"])),
 ]
-gameStore.waitingFulouPai = waitingFulouPai
+gameStore.canFulouList = canFulouList
+
+const actionHandler = (payload: { action: PlayerAction, dapai?: Pai, fulou?: Fulou }) => {
+  if(payload.action=="dapai" && payload.dapai){
+    gameStore.status = "ready"
+    gameStore.dapai=payload.dapai
+  }
+}
 </script>
 
 <template>
@@ -49,14 +56,15 @@ gameStore.waitingFulouPai = waitingFulouPai
   </main> -->
 
   <main>
-    <ShoupaiView :shoupai="new Shoupai('main', bingpai, zimo, fulou, waitingHulePai, waitingFulouPai)" />
+    <!-- <HeView :he="new He(createPais(['1m','2m','3m','4m','5m','6m','7m','8m','9m','1s','2s','3s','4s','5s','6s','7s','8s','9s']))" :position="'shangjia'"/> -->
+    <HeView :he="new He(createPais(['1m','2m','3m','4m','5m','6m','7m','8m','9m','1s','2s','3s','4s','5s','6s','7s','8s','9s']))" :position="'main'"/>
+    <!-- <ShoupaiView :shoupai="new Shoupai(bingpai, zimo, fulou, waitingHulePai, canFulouList)" :position="'main'"
+      @action="actionHandler" /> -->
   </main>
 </template>
 
 <style scoped>
-main {
-  width: 100%;
-}
+main {}
 
 header {
   line-height: 1.5;

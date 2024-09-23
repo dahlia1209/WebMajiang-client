@@ -31,9 +31,9 @@ describe("useShoupai", () => {
       
     ];
     zimopai = new Pai("z", 3);
-    shoupai = useShoupai(new Shoupai("main",));
-    shoupai = useShoupai(new Shoupai("main",bingpai));
-    shoupai = useShoupai(new Shoupai("main",bingpai, zimopai, fulou));
+    shoupai = useShoupai(new Shoupai());
+    shoupai = useShoupai(new Shoupai(bingpai));
+    shoupai = useShoupai(new Shoupai(bingpai, zimopai, fulou));
     expect(shoupai.value.bingpai.length).toBe(10);
     // expect(shoupai.value.bingpai[0].isClickable).toStrictEqual(false);
     expect(shoupai.value.bingpai[0]).toStrictEqual(bingpai[0]);
@@ -88,7 +88,7 @@ describe("useShoupai", () => {
     let bingpai: Pai[]=createPais(["1m","2m","4m","4m","5m","5m","5m","9m","9m","9m","9m"])
     let fulou: Fulou[]=[];
     let zimopai:Pai|null=null
-    let shoupai:Shoupai=new Shoupai("main",bingpai,zimopai,fulou)
+    let shoupai:Shoupai=new Shoupai(bingpai,zimopai,fulou)
     const s=useShoupai(shoupai)
 
     //チー
@@ -142,7 +142,7 @@ describe("useShoupai", () => {
     s.value.fulou=[new Fulou("peng",new Pai("m",3),createPais(["3m","3m"]))]
     f=new Fulou("jiagang",new Pai("m",3),createPais(["3m","3m","3m"]))
     expect(()=>{s.value.doFulou(f)}).toThrowError()
-
+    
   })
   
 });
