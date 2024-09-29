@@ -6,7 +6,7 @@ import {
   type PlayerAction,
 } from "@/models/type";
 import { type Pai } from "@/models/pai";
-import { type Fulou } from "@/models/shoupai";
+import { Fulou } from "@/models/shoupai";
 
 export const useGameStore = defineStore("game", {
   state: () => ({
@@ -16,6 +16,7 @@ export const useGameStore = defineStore("game", {
     dapai: null as Pai | null,
     zimopai: null as Pai | null,
     canFulouList: [] as Fulou[],
+    fulou: null as Fulou | null,
   }),
   getters: {
     canDapai: (state) => {
@@ -135,7 +136,7 @@ export const useGameStore = defineStore("game", {
     },
     doneDapai(position: Position) {
       return (
-        this.action == "dapai" &&
+        (this.action == "dapai" || this.action == "lizhi") &&
         this.status == "ready" &&
         this.turn == position &&
         this.dapai
@@ -147,6 +148,17 @@ export const useGameStore = defineStore("game", {
         this.status == "ready" &&
         this.turn == position &&
         this.dapai
+      );
+    },
+    doneFulouToMe(position: Position) {
+      return (
+        (this.action == "chi" ||
+          this.action == "peng" ||
+          this.action == "minggang") &&
+        this.status == "ready" &&
+        this.turn != position &&
+        this.fulou &&
+        this.fulou.position == position
       );
     },
     // increment() {
