@@ -1,103 +1,97 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
-import {
-  type Position,
-  type PlayerStatus,
-  type PlayerAction,
-} from "@/models/type";
+import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "@/models/type";
 import { type Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
+import { Score } from "@/models/score";
+import { Board, GameStatus } from "@/models/board";
+
+// export interface GameStore {
+//   action: PlayerAction | null;
+//   turn: Position | null;
+//   status: PlayerStatus | null;
+//   dapai: Pai | null;
+//   zimopai: Pai | null;
+//   canFulouList: Fulou[];
+//   fulou: Fulou | null;
+//   score: Score;
+// }
 
 export const useGameStore = defineStore("game", {
   state: () => ({
-    action: null as PlayerAction | null,
-    turn: null as Position | null,
-    status: null as PlayerStatus | null,
-    dapai: null as Pai | null,
-    zimopai: null as Pai | null,
-    canFulouList: [] as Fulou[],
-    fulou: null as Fulou | null,
+    game: new GameStatus(),
+    score: new Score(),
   }),
   getters: {
     canDapai: (state) => {
-      return (
-        state.action == "dapai" &&
-        state.turn == "main" &&
-        state.status == "thinking"
-      );
+      return state.game.action == "dapai" && state.game.turn == "main" && state.game.status == "thinking";
     },
     // canLipai: (state) => {
     //   return state.action == "zimo"
     // },
     canPeng: (state) => {
       if (
-        state.action !== "dapai" ||
-        state.turn === "main" ||
-        state.status !== "ready" ||
-        !state.dapai
+        state.game.action !== "dapai" ||
+        state.game.turn === "main" ||
+        state.game.status !== "ready" ||
+        !state.game.dapai
       ) {
         return false;
       }
 
-      return state.canFulouList.some(
+      return state.game.canFulouList.some(
         (f) =>
           f.type === "peng" &&
           f.nakipai &&
-          state.dapai &&
-          f.nakipai.num === state.dapai.num &&
-          f.nakipai.suit === state.dapai.suit
+          state.game.dapai &&
+          f.nakipai.num === state.game.dapai.num &&
+          f.nakipai.suit === state.game.dapai.suit
       );
     },
     canChi: (state) => {
       if (
-        state.action !== "dapai" ||
-        state.turn !== "shangjia" ||
-        state.status !== "ready" ||
-        !state.dapai
+        state.game.action !== "dapai" ||
+        state.game.turn !== "shangjia" ||
+        state.game.status !== "ready" ||
+        !state.game.dapai
       ) {
         return 0;
       }
 
-      const matchingFulou = state.canFulouList.filter(
+      const matchingFulou = state.game.canFulouList.filter(
         (f) =>
           f.type === "chi" &&
           f.nakipai &&
-          state.dapai &&
-          f.nakipai.num === state.dapai.num &&
-          f.nakipai.suit === state.dapai.suit
+          state.game.dapai &&
+          f.nakipai.num === state.game.dapai.num &&
+          f.nakipai.suit === state.game.dapai.suit
       );
       return matchingFulou.length;
     },
     canMingGang: (state) => {
       if (
-        state.action !== "dapai" ||
-        state.turn === "main" ||
-        state.status !== "ready" ||
-        !state.dapai
+        state.game.action !== "dapai" ||
+        state.game.turn === "main" ||
+        state.game.status !== "ready" ||
+        !state.game.dapai
       ) {
         return false;
       }
 
-      return state.canFulouList.some(
+      return state.game.canFulouList.some(
         (f) =>
           f.type === "minggang" &&
           f.nakipai &&
-          state.dapai &&
-          f.nakipai.num === state.dapai.num &&
-          f.nakipai.suit === state.dapai.suit
+          state.game.dapai &&
+          f.nakipai.num === state.game.dapai.num &&
+          f.nakipai.suit === state.game.dapai.suit
       );
     },
     canAnGang: (state) => {
-      if (
-        state.turn !== "main" &&
-        state.action !== "dapai" &&
-        state.status !== "thinking"
-      ) {
+      if (state.game.turn !== "main" && state.game.action !== "dapai" && state.game.status !== "thinking") {
         return 0;
       }
-      const matchingFulou = state.canFulouList.filter(
-        (f) => f.type === "angang" || f.type === "jiagang"
-      );
+      const matchingFulou = state.game.canFulouList.filter((f) => f.type === "angang" || f.type === "jiagang");
       return matchingFulou.length;
     },
     // recievedZimopai: (state) => {
@@ -117,48 +111,48 @@ export const useGameStore = defineStore("game", {
   },
   actions: {
     canLipai(position: Position) {
-      if (position == "main")
-        return this.turn == "xiajia" && this.action == "zimo";
-      else if (position == "xiajia")
-        return this.turn == "duimian" && this.action == "zimo";
-      else if (position == "duimian")
-        return this.turn == "shangjia" && this.action == "zimo";
-      else if (position == "shangjia")
-        return this.turn == "main" && this.action == "zimo";
+      if (position == "main") return this.game.turn == "xiajia" && this.game.action == "zimo";
+      else if (position == "xiajia") return this.game.turn == "duimian" && this.game.action == "zimo";
+      else if (position == "duimian") return this.game.turn == "shangjia" && this.game.action == "zimo";
+      else if (position == "shangjia") return this.game.turn == "main" && this.game.action == "zimo";
     },
     recievedZimopai(position: Position) {
       return (
-        this.action == "zimo" &&
-        this.status == "thinking" &&
-        this.turn == position &&
-        this.zimopai
+        this.game.action == "zimo" && this.game.status == "thinking" && this.game.turn == position && this.game.zimopai
       );
     },
     doneDapai(position: Position) {
       return (
-        (this.action == "dapai" || this.action == "lizhi") &&
-        this.status == "ready" &&
-        this.turn == position &&
-        this.dapai
+        (this.game.action == "dapai" || this.game.action == "lizhi") &&
+        this.game.status == "ready" &&
+        this.game.turn == position &&
+        this.game.dapai
       );
     },
     isLizhi(position: Position) {
       return (
-        this.action == "lizhi" &&
-        this.status == "ready" &&
-        this.turn == position &&
-        this.dapai
+        this.game.action == "lizhi" && this.game.status == "ready" && this.game.turn == position && this.game.dapai
       );
     },
     doneFulouToMe(position: Position) {
       return (
-        (this.action == "chi" ||
-          this.action == "peng" ||
-          this.action == "minggang") &&
-        this.status == "ready" &&
-        this.turn != position &&
-        this.fulou &&
-        this.fulou.position == position
+        (this.game.action == "chi" || this.game.action == "peng" || this.game.action == "minggang") &&
+        this.game.status == "ready" &&
+        this.game.turn != position &&
+        this.game.fulou &&
+        this.game.fulou.position == position
+      );
+    },
+    doneFulou(position: Position) {
+      return (
+        (this.game.action == "chi" ||
+          this.game.action == "peng" ||
+          this.game.action == "minggang" ||
+          this.game.action == "angang" ||
+          this.game.action == "jiagang") &&
+        this.game.status == "ready" &&
+        this.game.turn == position &&
+        this.game.fulou 
       );
     },
     // increment() {

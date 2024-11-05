@@ -13,107 +13,107 @@ describe("useGameStore", () => {
   });
   it("useGameStore init", () => {
     const gameStore = useGameStore();
-    expect(gameStore.action).toBe(null);
-    expect(gameStore.dapai).toBe(null);
-    expect(gameStore.status).toBe(null);
-    expect(gameStore.turn).toBe(null);
-    expect(gameStore.canFulouList).toStrictEqual([]);
-    gameStore.action = "zimo";
+    expect(gameStore.game.action).toBe(null);
+    expect(gameStore.game.dapai).toBe(null);
+    expect(gameStore.game.status).toBe(null);
+    expect(gameStore.game.turn).toBe(null);
+    expect(gameStore.game.canFulouList).toStrictEqual([]);
+    gameStore.game.action = "zimo";
     const zimo = new Pai("m", 1);
-    gameStore.dapai = zimo;
-    gameStore.status = "ready";
-    gameStore.turn = "shangjia";
+    gameStore.game.dapai = zimo;
+    gameStore.game.status = "ready";
+    gameStore.game.turn = "shangjia";
     const waitingFulouPai = [
       new Fulou("chi", new Pai("m", 3), createPais(["1m", "2m"])),
       new Fulou("chi", new Pai("s", 3), createPais(["1s", "2s"])),
     ];
 
-    gameStore.canFulouList = waitingFulouPai;
-    expect(gameStore.action).toBe("zimo");
-    expect(gameStore.dapai).toStrictEqual(zimo);
-    expect(gameStore.status).toBe("ready");
-    expect(gameStore.turn).toBe("shangjia");
-    expect(gameStore.canFulouList).toStrictEqual(waitingFulouPai);
+    gameStore.game.canFulouList = waitingFulouPai;
+    expect(gameStore.game.action).toBe("zimo");
+    expect(gameStore.game.dapai).toStrictEqual(zimo);
+    expect(gameStore.game.status).toBe("ready");
+    expect(gameStore.game.turn).toBe("shangjia");
+    expect(gameStore.game.canFulouList).toStrictEqual(waitingFulouPai);
   });
   it("useGameStore getter", () => {
     const gameStore = useGameStore();
     //dapai判定
-    gameStore.action = "dapai";
-    gameStore.status = "thinking";
-    gameStore.turn = "main";
+    gameStore.game.action = "dapai";
+    gameStore.game.status = "thinking";
+    gameStore.game.turn = "main";
     expect(gameStore.canDapai).toBe(true);
-    gameStore.status = "ready";
+    gameStore.game.status = "ready";
     expect(gameStore.canDapai).toBe(false);
 
     //リー牌判定
-    gameStore.action = "zimo";
-    gameStore.turn = "shangjia";
+    gameStore.game.action = "zimo";
+    gameStore.game.turn = "shangjia";
     expect(gameStore.canLipai('duimian')).toBe(true);
-    gameStore.action = "dapai";
+    gameStore.game.action = "dapai";
     expect(gameStore.canLipai('duimian')).toBe(false);
 
     //暗槓判定
-    gameStore.action = "dapai";
-    gameStore.status = "thinking";
-    gameStore.turn = "main";
-    gameStore.canFulouList = [
+    gameStore.game.action = "dapai";
+    gameStore.game.status = "thinking";
+    gameStore.game.turn = "main";
+    gameStore.game.canFulouList = [
       new Fulou("angang", null, createPais(["1m", "1m", "1m", "1m"])),
     ];
     expect(gameStore.canAnGang).toBe(1);
-    gameStore.canFulouList = [];
+    gameStore.game.canFulouList = [];
     expect(gameStore.canAnGang).toBe(0);
 
     //加槓判定
-    gameStore.action = "dapai";
-    gameStore.status = "thinking";
-    gameStore.turn = "main";
-    gameStore.canFulouList = [
+    gameStore.game.action = "dapai";
+    gameStore.game.status = "thinking";
+    gameStore.game.turn = "main";
+    gameStore.game.canFulouList = [
       new Fulou("jiagang", new Pai("m", 1), createPais(["1m", "1m", "1m"])),
     ];
     expect(gameStore.canAnGang).toBe(1);
-    gameStore.canFulouList = [];
+    gameStore.game.canFulouList = [];
     expect(gameStore.canAnGang).toBe(0);
 
     //明槓判定
-    gameStore.action = "dapai";
-    gameStore.status = "ready";
-    gameStore.turn = "xiajia";
-    gameStore.canFulouList = [
+    gameStore.game.action = "dapai";
+    gameStore.game.status = "ready";
+    gameStore.game.turn = "xiajia";
+    gameStore.game.canFulouList = [
       new Fulou("minggang", new Pai("m", 1), createPais(["1m", "1m", "1m"])),
     ];
-    gameStore.dapai = new Pai("m", 1);
+    gameStore.game.dapai = new Pai("m", 1);
     expect(gameStore.canMingGang).toBe(true);
-    gameStore.canFulouList = [];
+    gameStore.game.canFulouList = [];
     expect(gameStore.canMingGang).toBe(false);
 
     //ポン判定
-    gameStore.action = "dapai";
-    gameStore.status = "ready";
-    gameStore.turn = "duimian";
-    gameStore.canFulouList = [
+    gameStore.game.action = "dapai";
+    gameStore.game.status = "ready";
+    gameStore.game.turn = "duimian";
+    gameStore.game.canFulouList = [
       new Fulou("peng", new Pai("m", 1), createPais(["1m", "1m"])),
     ];
-    gameStore.dapai = new Pai("m", 1);
+    gameStore.game.dapai = new Pai("m", 1);
     expect(gameStore.canPeng).toBe(true);
-    gameStore.canFulouList = [];
+    gameStore.game.canFulouList = [];
     expect(gameStore.canPeng).toBe(false);
     
     //チー判定
-    gameStore.action = "dapai";
-    gameStore.status = "ready";
-    gameStore.turn = "shangjia";
-    gameStore.canFulouList = [
+    gameStore.game.action = "dapai";
+    gameStore.game.status = "ready";
+    gameStore.game.turn = "shangjia";
+    gameStore.game.canFulouList = [
       new Fulou("chi", new Pai("m", 4), createPais(["2m", "3m"])),
 
     ];
-    gameStore.dapai = new Pai("m", 4);
+    gameStore.game.dapai = new Pai("m", 4);
     expect(gameStore.canChi).toBe(1);
-    gameStore.canFulouList = [
+    gameStore.game.canFulouList = [
       new Fulou("chi", new Pai("m", 4), createPais(["2m", "3m"])),
       new Fulou("chi", new Pai("m", 4), createPais(["5m", "6m"])),
     ];
     expect(gameStore.canChi).toBe(2);
-    gameStore.canFulouList = [];
+    gameStore.game.canFulouList = [];
     expect(gameStore.canChi).toBe(0);
     
   });

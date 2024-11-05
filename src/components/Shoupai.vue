@@ -5,7 +5,7 @@ import { type PlayerAction, type Position } from "@/models/type";
 import PaiView from '../components/Pai.vue'
 import FulouView from '../components/Fulou.vue'
 import { useGameStore } from '@/stores/game'
-import { watchEffect, ref } from 'vue';
+import { watchEffect, ref, watch } from 'vue';
 
 const props = defineProps<{
   shoupai: Shoupai,
@@ -25,17 +25,31 @@ const selectingChi = ref(false)
 const selectingAngang = ref(false)
 
 //ウォッチャー
-watchEffect(() => {
-  //下家zimo時に理牌
-  gameStore.canLipai(props.position) ? lipai() : null
-
+watch([gameStore.$state], () => {
   //ツモ時にツモ牌にセット
-  gameStore.recievedZimopai(props.position) ? s.value.setZimopai(gameStore.zimopai as Pai) : null
+  gameStore.recievedZimopai(props.position) ? s.value.setZimopai(gameStore.game.zimopai as Pai) : null
+
+  //他家打牌時に他家手牌１枚非表示
+  gameStore.doneDapai(props.position) && props.position != "main" ? hiddenKey.value = 0 : null
+
+  //他家副露時に副露牌公開
+  if (gameStore.doneFulou(props.position) && props.position != "main" && gameStore.game.fulou) {
+    const f= new Fulou(gameStore.game.fulou.type,gameStore.game.fulou.nakipai as Pai,gameStore.game.fulou?.fuloupais  as Pai[],gameStore.game.fulou?.position)
+    s.value.addFulou(f)
+    for (let i = 0; i < gameStore.game.fulou!.fuloupais.length; i++) {
+      s.value.bingpai.pop();
+    }
+    gameStore.game.fulou=null
+  }
+
+  //下家ツモまたは他家副露時に理牌
+  gameStore.canLipai(props.position) || gameStore.doneFulouToMe(props.position) ? lipai() : null
+
 })
+
 
 //イベント関数
 const dapai = (idx: number) => {
-  if (!gameStore.canDapai) return
   hiddenKey.value = idx
   const dapai = idx == 99 ? s.value.zimopai as Pai : s.value.bingpai[idx] as Pai
   emit("action", { action: 'dapai', dapai: dapai })
@@ -50,23 +64,22 @@ const lipai = () => {
 }
 
 const doFulou = (type: FulouType, nakipai: Pai) => {
-  const fulouTemp = gameStore.canFulouList.find(
+  const fulouTemp = gameStore.game.canFulouList.find(
     (f) => f.type === type && f.nakipai?.equals(nakipai)
   );
 
   if (!fulouTemp) throw Error(`次の牌で${type}できません。${nakipai}`);
 
-  const fulou = new Fulou(type, nakipai, fulouTemp.fuloupais as Pai[], gameStore.turn)
+  const fulou = new Fulou(type, nakipai, fulouTemp.fuloupais as Pai[], gameStore.game.turn)
   s.value.doFulou(fulou);
 };
 
 
 const chi = (nakipai: Pai) => {
   if (gameStore.canChi >= 2) {
-    selectingChi.value = true;
+    selectingChi.value = true; //todo
   } else {
     doFulou('chi', nakipai);
-    emit
   }
 };
 
@@ -82,7 +95,7 @@ const angang = () => {
   if (gameStore.canChi >= 2) {
     selectingAngang.value = true;
   } else {
-    const fulou = gameStore.canFulouList.find(
+    const fulou = gameStore.game.canFulouList.find(
       (f) => f.type === "angang" || f.type === "jiagang"
     );
     if (!fulou) throw new Error("カンができません")
@@ -97,18 +110,18 @@ const angang = () => {
     <div class="bingpai">
       <div v-if="props.position == 'main'" :class="['main-action',]">
         <button
-          :class="{ hidden: !gameStore.canPeng && !gameStore.canAnGang && !gameStore.canMingGang && !gameStore.canChi }">×</button>
-        <button v-if="gameStore.canPeng" @click="peng(gameStore.dapai as Pai)">ポン</button>
+          :class="[{ hidden: !gameStore.canPeng && !gameStore.canAnGang && !gameStore.canMingGang && !gameStore.canChi }, 'cancel']">×</button>
+        <button v-if="gameStore.canPeng" @click="peng(gameStore.game.dapai as Pai)" class="peng">ポン</button>
         <button v-if="gameStore.canAnGang || gameStore.canMingGang"
-          @click="gameStore.canMingGang ? minggang(gameStore.dapai as Pai) : angang()">カン</button>
-        <button v-if="gameStore.canChi" @click="chi(gameStore.dapai as Pai)">チー</button>
+          @click="gameStore.canMingGang ? minggang(gameStore.game.dapai as Pai) : angang()" class="gang">カン</button>
+        <button v-if="gameStore.canChi" @click="chi(gameStore.game.dapai as Pai)" class="chi">チー</button>
       </div>
       <div>
         <PaiView :pai="(pai as Pai)" v-for="(pai, i) in s.bingpai" :key="pai.id"
-          @click="props.position == 'main' ? dapai(i) : null"
-          :class="[{ 'clickalble': gameStore.canDapai }, { 'hidden': hiddenKey == i }]" />
+          @click="props.position == 'main' &&  gameStore.canDapai ? dapai(i) : null"
+          :class="[{ 'clickalble': gameStore.canDapai && props.position == 'main' }, { 'hidden': hiddenKey == i }]" />
         <PaiView v-if="s.zimopai" :pai="(s.zimopai as Pai)"
-          :class="['zimo', { 'clickalble': gameStore.canDapai }, { 'hidden': hiddenKey == 99 }]"
+          :class="['zimo', { 'clickalble': gameStore.canDapai && props.position == 'main' }, { 'hidden': hiddenKey == 99 }]"
           @click="props.position == 'main' ? dapai(99) : null" />
       </div>
     </div>
@@ -124,21 +137,21 @@ const angang = () => {
 .shoupai {
   display: flex;
   width: auto;
-  zoom: 0.5;
+  zoom: 0.45;
 }
 
 .main {}
 
 .xiajia {
-  transform: rotate(-90deg);
+  /* transform: rotate(-90deg); */
 }
 
 .duimian {
-  transform: rotate(-180deg);
+  /* transform: rotate(-180deg); */
 }
 
 .shangjia {
-  transform: rotate(-270deg);
+  /* transform: rotate(-270deg); */
 }
 
 .main-action {

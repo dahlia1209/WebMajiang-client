@@ -14,7 +14,7 @@ const h = useHe(props.he)
 const gameStore = useGameStore()
 const lizhiIndex = ref(-1)
 watchEffect(() => {
-    gameStore.doneDapai(props.position) ? h.value.pai.push(gameStore.dapai as Pai) : null
+    gameStore.doneDapai(props.position) ? h.value.pai.push(gameStore.game.dapai as Pai) : null
 
     gameStore.isLizhi(props.position) ? lizhiIndex.value = h.value.pai.length - 1 : null
 
@@ -25,7 +25,7 @@ watchEffect(() => {
 </script>
 
 <template>
-    <div class="he" :class="props.position">
+    <div class="he">
         <div class="grid">
             <PaiView :pai="(pai as Pai)" v-for="(pai, i) in h.pai" :key="pai.id" :class="{ roated: i == lizhiIndex }" />
         </div>
@@ -53,7 +53,7 @@ watchEffect(() => {
 }
 
 
-.main {}
+/* .main {}
 
 .xiajia {
     transform: rotate(-90deg);
@@ -65,5 +65,5 @@ watchEffect(() => {
 
 .shangjia {
     transform: rotate(-270deg);
-}
+} */
 </style>

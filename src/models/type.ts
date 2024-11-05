@@ -15,3 +15,5 @@ export type PlayerAction =
   | "minggang"
   | "jiagang";
 
+export type Feng="東"| "南"| "西"| "北"
+
