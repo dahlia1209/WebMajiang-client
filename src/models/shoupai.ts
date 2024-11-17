@@ -13,17 +13,30 @@ export class Fulou {
   position: Position | null;
   readonly id: string;
 
-  constructor(
-    type: FulouType,
-    nakipai: Pai | null = null,
-    fuloupais: Pai[] = [],
-    position: Position | null = null
-  ) {
+  constructor(type: FulouType, nakipai: Pai | null = null, fuloupais: Pai[] = [], position: Position | null = null) {
     this.type = type;
     this.nakipai = nakipai;
     this.fuloupais = fuloupais;
     this.position = position;
     this.id = uuidv4();
+  }
+
+  serialize() {
+    const ns = this.nakipai ? this.nakipai.seriarize() : "null";
+    const fs = this.fuloupais.length == 0 ? "null" : this.fuloupais.map((p) => p.seriarize()).join("+");
+    const ps = this.position ? this.position : "null";
+    const s = [String(this.type), ns, fs, ps].join(",");
+    return s;
+  }
+
+  static deserialize(str: string) {
+    const ss = str.split(",");
+    if (ss.length != 4) throw new Error(`指定した文字列に誤りがあります:${str}`);
+    const t = ss[0] as FulouType;
+    const n = ss[1] == "null" ? null : Pai.deseriarize(ss[1]);
+    const f = ss[2] == "null" ? [] : ss[2].split("+").map((fs) => Pai.deseriarize(fs));
+    const p = ss[3] == "null" ? null : (ss[3] as Position);
+    return new Fulou(t, n, f, p);
   }
 }
 
@@ -118,26 +131,16 @@ export class Shoupai {
   }
 
   doFulou(fulou: Fulou) {
-    if (
-      fulou.type == "chi" ||
-      fulou.type == "minggang" ||
-      fulou.type == "peng" ||
-      fulou.type == "angang"
-    ) {
+    if (fulou.type == "chi" || fulou.type == "minggang" || fulou.type == "peng" || fulou.type == "angang") {
       fulou.fuloupais.forEach((p) => {
         const idx = this.bingpai.findIndex((bp) => p.equals(bp));
-        if (idx < 0)
-          throw Error(`${fulou.type}ができません。次の牌がありません:${p}`);
+        if (idx < 0) throw Error(`${fulou.type}ができません。次の牌がありません:${p}`);
         this.removPaiFromBingpai(idx);
       });
       this.addFulou(fulou);
     } else if (fulou.type == "jiagang") {
       const matchedFulouIndex = this.fulou.findIndex(
-        (f) =>
-          f.type == "peng" &&
-          f.nakipai &&
-          fulou.nakipai &&
-          f.nakipai.equals(fulou.nakipai)
+        (f) => f.type == "peng" && f.nakipai && fulou.nakipai && f.nakipai.equals(fulou.nakipai)
       );
       if (matchedFulouIndex < 0) throw Error(`${fulou.type}ができません。`);
       const matchedBingpaiIdx = [...this.bingpai, this.zimopai].findIndex(

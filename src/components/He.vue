@@ -4,7 +4,7 @@ import { He, useHe } from "@/models/he";
 import { type PlayerAction, type Position } from "@/models/type";
 import PaiView from '../components/Pai.vue'
 import { useGameStore } from '@/stores/game'
-import { watchEffect, ref, onMounted } from 'vue';
+import { watchEffect, ref, onMounted, watch } from 'vue';
 
 const props = defineProps<{
     he: He,
@@ -13,12 +13,15 @@ const props = defineProps<{
 const h = useHe(props.he)
 const gameStore = useGameStore()
 const lizhiIndex = ref(-1)
-watchEffect(() => {
-    gameStore.doneDapai(props.position) ? h.value.pai.push(gameStore.game.dapai as Pai) : null
 
-    gameStore.isLizhi(props.position) ? lizhiIndex.value = h.value.pai.length - 1 : null
-
-    gameStore.doneFulouToMe(props.position) ? h.value.pai.pop() : null
+watch([
+    () => gameStore.doneDapai(props.position),
+    () => gameStore.isLizhi(props.position),
+    () => gameStore.doneFulouToMe(props.position)
+], ([newa, newb, newc], [olda, oldb, oldc]) => {
+    if (newa && !olda) h.value.pai.push(gameStore.game.dapai as Pai)
+    if (newb && !oldb) lizhiIndex.value = h.value.pai.length - 1
+    if (newc && !oldc) h.value.pai.pop()
 })
 
 

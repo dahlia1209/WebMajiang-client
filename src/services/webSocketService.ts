@@ -19,71 +19,48 @@ export interface SimpleMessage extends BaseMessage {
   msg: string;
 }
 
-interface GameStartMessage extends BaseMessage {
-  type: MessageType.GameStart;
-  players: string[];
-  initialState: {};
-}
-
-interface GameEndMessage extends BaseMessage {
-  type: MessageType.GameEnd;
-  winner: string | null;
-  scores: {
-    [playerId: string]: number;
-  };
-}
-
-export interface ActionMessage extends BaseMessage {
-  type: MessageType.Action;
-  action: PlayerAction;
-  turn: Position | null;
-  status: PlayerStatus | null;
-  dapai: string | null;
-  zimopai: string | null;
-  canFulouList: Fulou[];
-  fulou: Fulou | null;
-  baopai: string;
-}
-
 export interface ScoreMessage extends BaseMessage {
   type: MessageType.Score;
-  zhuangfeng: Feng;
-  menfeng: Feng;
-  jushu: number;
-  jicun: number;
-  changbang: number;
-  defen: number[];
+  score: {
+    zhuangfeng?: Feng;
+    menfeng?: Feng;
+    jushu?: number;
+    jicun?: number;
+    changbang?: number;
+    defen?: number[];
+    baopai?: string[];
+  };
 }
 
 export interface GameMessage extends BaseMessage {
   type: MessageType.Game;
   game: {
-    action: PlayerAction | null ,
-    turn: Position | null ,
-    status: PlayerStatus | null ,
-    dapai: string|null ,
-    zimopai: string | null ,
-    canFulouList: Fulou[] ,
-    fulou: Fulou | null 
+    action?: PlayerAction | null;
+    turn?: Position | null;
+    status?: PlayerStatus | null;
+    dapai?: string | null;
+    zimopai?: string | null;
+    canFulouList?: string[];
+    fulou?: string | null;
+    qipai?: string;
   };
 }
 
-export type WebSocketMessage =
-  | GameStartMessage
-  | GameEndMessage
-  | SimpleMessage
-  | ActionMessage
-  | ScoreMessage
-  | GameMessage;
+export type WebSocketMessage = SimpleMessage | ScoreMessage | GameMessage;
 interface BaseMessage {
   type: MessageType;
+}
+
+export interface callbackProperty{
+  action?: PlayerAction, 
+  dapai?: Pai, 
+  fulou?: Fulou
 }
 
 export const useWebSocketService = (connectionUrl: string) => {
   const url = connectionUrl;
   const socket = ref<null | WebSocket>(null);
   const messages = ref<WebSocketMessage[]>([]);
-  // { type: "message", msg: "Init message" } as SimpleMessage,
 
   const open = () => {
     socket.value = new WebSocket(url);
@@ -106,6 +83,7 @@ export const useWebSocketService = (connectionUrl: string) => {
   };
 
   const handleonopen = () => {
+    callbackMessage({action:"kaiju"})
     console.log("websocket open");
   };
 
@@ -114,10 +92,6 @@ export const useWebSocketService = (connectionUrl: string) => {
     try {
       const message = parseWebSocketMessage(event);
       switch (message.type) {
-        case MessageType.Action:
-          const a = annotation<ActionMessage>(event);
-          messages.value.push(a);
-          break;
         case MessageType.Score:
           const b = annotation<ScoreMessage>(event);
           messages.value.push(b);
@@ -161,8 +135,6 @@ export const useWebSocketService = (connectionUrl: string) => {
     return parse as T;
   };
 
-  //メッセージ受診関数
-
   //メッセージ送信関数
   const sendSampleMessage = (message: string) => {
     const format: SimpleMessage = {
@@ -172,20 +144,17 @@ export const useWebSocketService = (connectionUrl: string) => {
     sendMessage(format);
   };
 
-  const sendGameStart = (players: string[], initialState: any) => {
-    const message: GameStartMessage = {
-      type: MessageType.GameStart,
-      players,
-      initialState,
+  const callbackMessage = (cb?:callbackProperty) => {
+    const format: GameMessage = {
+      type: MessageType.Game,
+      game: {
+        action:cb && cb.action ? cb.action:null,
+        fulou:cb && cb.fulou ? cb.fulou.serialize():null,
+        dapai:cb && cb.dapai ? cb.dapai.seriarize():null,
+      },
     };
-    sendMessage(message);
+    sendMessage(format);
   };
-
-  const updatedMsg = computed(() => {
-    return messages.value;
-  });
-
-  // const reactiveWebSocketService= ref(client);
 
   onMounted(() => {
     open();
@@ -198,7 +167,7 @@ export const useWebSocketService = (connectionUrl: string) => {
   const client = {
     messages,
     sendSampleMessage,
-    updatedMsg,
+    callbackMessage,
     open,
     close,
     handleWebSocketMessage,

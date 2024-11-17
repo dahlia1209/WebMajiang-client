@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import { usePai,  Pai } from "../pai";
 import { useShoupai,  Shoupai,  Fulou,createPais } from "../shoupai";
 import { ref} from "vue";
+import exp from "constants";
 
 describe("useShoupai", () => {
   it("useShoupai init", () => {
@@ -144,5 +145,33 @@ describe("useShoupai", () => {
     expect(()=>{s.value.doFulou(f)}).toThrowError()
     
   })
-  
+  it("fulou serialize and deserialize",()=>{
+    let fulou:Fulou
+    //serialize
+    fulou=new Fulou("peng")
+    expect(fulou.serialize()).toBe("peng,null,null,null")
+    fulou=new Fulou("chi",new Pai("m",1),createPais(["2m","3m"]),"duimian")
+    expect(fulou.serialize()).toBe("chi,m1f,m2f+m3f,duimian")
+
+    //deserialize
+    fulou=Fulou.deserialize("angang,null,z1f+z1f+z1f+z1f,null")
+    expect(fulou.type).toBe("angang")
+    expect(fulou.nakipai).toBe(null)
+    expect(fulou.fuloupais.length).toBe(4)
+    expect(fulou.fuloupais[0].name()).toBe("z1")
+    expect(fulou.fuloupais[3].name()).toBe("z1")
+    expect(fulou.position).toBe(null)
+    fulou=Fulou.deserialize("minggang,p5t,p5f+p5f+p5f,duimian")
+    expect(fulou.type).toBe("minggang")
+    expect(fulou.nakipai?.name()).toBe("p0")
+    expect(fulou.fuloupais.length).toBe(3)
+    expect(fulou.fuloupais[0].name()).toBe("p5")
+    expect(fulou.fuloupais[2].name()).toBe("p5")
+    expect(fulou.position).toBe("duimian")
+
+    //exception
+    expect(()=>Fulou.deserialize("angang,null,z1f+z1f+z1f+z1f"))
+    expect(()=>Fulou.deserialize("angang,null,z1f+z1f+z1f+z1f,null,null"))
+
+  })
 });

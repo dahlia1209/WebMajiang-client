@@ -3,6 +3,16 @@ import { Pai } from "./pai";
 import { type PaiSuit } from "./type";
 import { type Position, type Feng } from "@/models/type";
 
+export interface ScoreProperty{
+  zhuangfeng?: Feng;
+  menfeng?: Feng;
+  baopai?: Pai[];
+  paishu?: number;
+  jushu?: number;
+  jicun?: number;
+  changbang?: number;
+  defen?: number[];
+}
 export class Score {
   zhuangfeng;
   menfeng;
@@ -11,43 +21,30 @@ export class Score {
   changbang;
   baopai;
   paishu;
-  defen  ;
+  defen;
 
-  constructor(
-    zhuangfeng: Feng = "東",
-    menfeng: Feng = "東",
-    baopai: Pai[] = [new Pai("b", 0)],
-    paishu = 69,
-    jushu = 1,
-    jicun = 0,
-    changbang = 0,
-    defen = [25000, 25000, 25000, 25000]
-  ) {
-    this.zhuangfeng = zhuangfeng;
-    this.menfeng = menfeng;
-    this.jushu = jushu;
-    this.jicun = jicun;
-    this.changbang = changbang;
-    this.baopai = this.validateBaopai(baopai);
-    this.paishu = paishu;
-    this.defen = this.validateDefen(defen);
+  constructor(option?: ScoreProperty) {
+    this.zhuangfeng = option && option.zhuangfeng ? option.zhuangfeng : "東";
+    this.menfeng = option && option.menfeng ? option.menfeng : "東";
+    this.baopai = option && option.baopai ? this.validateBaopai(option.baopai) : this.validateBaopai([new Pai("b", 0)]);
+    this.paishu = option && option.paishu ? option.paishu : 70;
+    this.jushu = option && option.jushu ? option.jushu : 1;
+    this.jicun = option && option.jicun ? option.jicun : 0;
+    this.changbang = option && option.changbang ? option.changbang : 0;
+    this.defen = option && option.defen ? this.validateDefen(option.defen) : [25000, 25000, 25000, 25000];
   }
 
   private validateBaopai(baopai: Pai[]) {
     if (baopai.length > 0 && baopai.length <= 5) {
       const fillCnt = 5 - baopai.length;
-      const bpais:Pai[]=[]
+      const bpais: Pai[] = [];
       for (let index = 0; index < fillCnt; index++) {
-        bpais.push(new Pai("b", 0))
+        bpais.push(new Pai("b", 0));
       }
       return [...baopai, ...bpais];
-      // return [...baopai, ...Array(fillCnt).fill(new Pai("b", 0))];
-      
-      return [...baopai, ...bpais]; //裏牌で埋める
+
     } else {
-      throw new Error(
-        `ドラ牌の枚数が正しくありません。1~5枚に設定してください。baopai:${baopai}`
-      );
+      throw new Error(`ドラ牌の枚数が正しくありません。1~5枚に設定してください。baopai:${baopai}`);
     }
   }
 
@@ -55,7 +52,7 @@ export class Score {
     if (defen.length != 4) {
       throw new Error(`各プレイヤーの得点を指定してください。defen:${defen}`);
     }
-    return defen
+    return defen;
   }
 
   getJushuName() {
@@ -85,6 +82,17 @@ export class Score {
     const fengOrder: Feng[] = ["東", "南", "西", "北"];
     const startIndex = fengOrder.indexOf(this.menfeng);
     return [...fengOrder.slice(startIndex), ...fengOrder.slice(0, startIndex)];
+  }
+
+  update(score:ScoreProperty){
+    this.zhuangfeng =  score.zhuangfeng===undefined? this.zhuangfeng:score.zhuangfeng
+    this.menfeng = score.menfeng===undefined? this.zhuangfeng:score.menfeng
+    this.baopai = score.baopai ===undefined? this.baopai:score.baopai
+    this.paishu = score.paishu ===undefined? this.paishu:score.paishu
+    this.jushu =  score.jushu ===undefined? this.jushu:score.jushu
+    this.jicun =  score.jicun ===undefined? this.jicun:score.jicun
+    this.changbang = score.changbang ===undefined? this.changbang:score.changbang
+    this.defen = score.defen ===undefined? this.defen:score.defen
   }
 }
 

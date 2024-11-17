@@ -21,7 +21,7 @@ describe("Fulou", () => {
     //ポン:下家
     fulou= new Fulou("peng", new Pai("m", 1), createPais(["1m", "1m"]),"xiajia"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou,position:"main" },
     });
     expect(wrapper.findAll("img").length).toBe(3);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("m1"))
@@ -31,7 +31,7 @@ describe("Fulou", () => {
     //ポン:対面
     fulou= new Fulou("peng", new Pai("s", 1), createPais(["1s", "1s"]),"duimian"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou ,position:"main"},
     });
     expect(wrapper.findAll("img").length).toBe(3);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("s1"))
@@ -41,7 +41,7 @@ describe("Fulou", () => {
     //ポン:上家
     fulou= new Fulou("peng", new Pai("p", 1), createPais(["1p", "1p"]),"shangjia"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou ,position:"main"},
     });
     expect(wrapper.findAll("img").length).toBe(3);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("p1"))
@@ -51,7 +51,7 @@ describe("Fulou", () => {
     //カン:下家
     fulou= new Fulou("minggang", new Pai("m", 1), createPais(["1m", "1m", "1m"]),"xiajia"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou,position:"main" },
     });
     expect(wrapper.findAll("img").length).toBe(4);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("m1"))
@@ -62,7 +62,7 @@ describe("Fulou", () => {
     //カン:対面
     fulou= new Fulou("minggang", new Pai("s", 1), createPais(["1s", "1s", "1s"]),"duimian"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou ,position:"main"},
     });
     expect(wrapper.findAll("img").length).toBe(4);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("s1"))
@@ -73,7 +73,7 @@ describe("Fulou", () => {
     //カン:上家
     fulou= new Fulou("minggang", new Pai("p", 1), createPais(["1p", "1p", "1p"]),"shangjia"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou ,position:"main"},
     });
     expect(wrapper.findAll("img").length).toBe(4);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("p1"))
@@ -84,7 +84,7 @@ describe("Fulou", () => {
     //チー:上家
     fulou= new Fulou("chi", new Pai("p", 2), createPais(["1p", "3p"]),"shangjia"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou,position:"main" },
     });
     expect(wrapper.findAll("img").length).toBe(3);
     expect(wrapper.findAll("img")[0].attributes("name")).toBe("p2")
@@ -96,7 +96,7 @@ describe("Fulou", () => {
     //暗カン
     fulou= new Fulou("angang", null, createPais(["1p", "1p", "1p", "1p"])),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou ,position:"main" },
     });
     expect(wrapper.findAll("img").length).toBe(4);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("p1"))
@@ -107,7 +107,7 @@ describe("Fulou", () => {
     //加槓
     fulou= new Fulou("jiagang", new Pai("p",1), createPais([ "1p", "1p", "1p"]),"duimian"),
     wrapper = mount(FulouView, {
-      props: { fulou: fulou },
+      props: { fulou: fulou ,position:"main"  },
     });
     expect(wrapper.findAll("img").length).toBe(4);
     wrapper.findAll("img").forEach(e=>expect(e.attributes("name")).toBe("p1"))

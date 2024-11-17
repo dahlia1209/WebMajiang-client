@@ -41,10 +41,10 @@ watchEffect(()=>{
         <div class="child-container">
             <div class="childchild-container">
                 <div class="changbang">
-                    積み棒:{{ s.changbang }}
+                    <img src="../assets/tenbou/100.gif" alt="changbang">:{{ s.changbang }}
                 </div>
                 <div class="jicun">
-                    供託:{{ s.jicun }}
+                    <img src="../assets/tenbou/1000.gif" alt="jicun">:{{ s.jicun }}
                 </div>
             </div>
             <div class="paishu">
@@ -85,6 +85,13 @@ watchEffect(()=>{
     flex-direction: column;
     color: white;
     user-select: none;
+}
+
+.changbang img{
+    width: 70px;
+}
+.jicun img{
+    width: 70px;
 }
 
 .child-container{

@@ -1,29 +1,23 @@
 <script setup lang="ts">
+import {ref} from 'vue'
 import { Score } from "@/models/score";
 import { usePai, Pai } from '@/models/pai'
 import { Board, GameStatus } from '@/models/board'
+import { Settings } from '@/models/settings'
 import BoardView from './components/Board.vue'
+import TitleView from './components/Title.vue'
 import TestComponentView from './components/TestComponent.vue'
 import { Shoupai, createPais, Fulou } from "@/models/shoupai";
-
-// fulou = [
-//   new Fulou("peng", new Pai("z", 3), createPais(["3z", "3z"]), 'duimian'),
-//   new Fulou("peng", new Pai("p", 3), createPais(["3p", "3p"]), 'xiajia'),
-//   new Fulou("chi", new Pai("p", 1), createPais(["2p", "3p"]), 'shangjia'),
-// ]
-// canFulouList = [
-//   new Fulou("chi", new Pai("s", 2), createPais(["1s", "3s"])),
-// ]
+import { useGameStore } from '@/stores/game'
+const selectedMode=ref(0)
+const gameStore = useGameStore()
 
 </script>
 
 <template>
   <main>
-    <BoardView :board="new Board(
-      new GameStatus('dapai', 'main', 'thinking')
-      , new Score('東', '東', [new Pai('z', 7)])
-      , [new Shoupai(createPais(['1m', '1m', '1m', '2m', '3m', '4m', '5m', '6m', '7m', '8m', '9m', '9m', '9m']), new Pai('s', 1))]
-    )" />
+    <TitleView v-if="gameStore.settings.mode==0" :title="new Settings()" />
+    <BoardView v-else-if="gameStore.settings.mode==1" :board="new Board()" />
   </main>
   <!-- <header v-if="!isStart">
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
@@ -46,7 +40,6 @@ main {
   height: 680px;
   position: relative;
   background: #154;
-
 }
 
 

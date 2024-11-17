@@ -4,21 +4,30 @@ import { Shoupai, useShoupai, type Fulou, useFulou } from "@/models/shoupai";
 import PaiView from '../components/Pai.vue'
 import { useGameStore } from '@/stores/game'
 import { computed, watchEffect, watchSyncEffect } from 'vue';
+import {type Position } from "@/models/type";
 
 const props = defineProps<{
-    fulou: Fulou
+    fulou: Fulou,
+    position: Position
 }>()
+
+const myXiajia=(pos :Position)=>{
+    if(pos=="main") return "xiajia" as Position
+    else if(pos=="xiajia") return "duimian" as Position
+    else if(pos=="duimian") return "shangjia" as Position
+    else return "main" as Position
+}
 
 const f = useFulou(props.fulou)
 const pais=f.value.fuloupais
 const key = (function () {
-    if (f.value.position == 'main') {
+    if (props.position==f.value.position ) {
         return -1
-    } else if (f.value.position == 'xiajia') {
+    } else if (myXiajia(props.position)==f.value.position ) {
         return pais.length
-    } else if (f.value.position == "duimian") {
+    } else if (myXiajia(myXiajia(props.position))==f.value.position ) {
         return 1
-    } else if (f.value.position == "shangjia") {
+    } else if (myXiajia(myXiajia(myXiajia(props.position)))==f.value.position) {
         return 0
     } else {
         return -1

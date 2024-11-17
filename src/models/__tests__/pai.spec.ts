@@ -45,4 +45,34 @@ describe('usePai', () => {
     pai = usePai(new Pai('m',1))
     expect(pai.value.name()).toBe("m1")
   })
+  it("serialize and deserialize",()=>{
+    let pai
+    let str
+    //serialize
+    pai = usePai(new Pai('m',1))
+    str=pai.value.seriarize()
+    expect(str).toBe("m1f")
+    pai = usePai(new Pai('s',5,true))
+    str=pai.value.seriarize()
+    expect(str).toBe("s5t")
+
+    //deserialize
+    str="m1f"
+    pai=Pai.deseriarize(str)
+    expect(pai.suit).toBe("m")
+    expect(pai.num).toBe(1)
+    expect(pai.isRed).toBe(false)
+    str="s5t"
+    pai=Pai.deseriarize(str)
+    expect(pai.suit).toBe("s")
+    expect(pai.num).toBe(5)
+    expect(pai.isRed).toBe(true)
+
+
+    //exception
+    expect(()=>Pai.deseriarize("m")).toThrowError()
+    expect(()=>Pai.deseriarize("m1tt")).toThrowError()
+    expect(()=>Pai.deseriarize("abc")).toThrowError()
+    
+  })
 })

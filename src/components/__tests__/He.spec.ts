@@ -62,6 +62,8 @@ describe("He", () => {
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(1);
     expect(wrapper.findAllComponents("img")[0].attributes("name")).toBe("m1");
+    gameStore.game.dapai =null;
+    await flushPromises();
     gameStore.game.dapai = new Pai("m", 2);
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(2);
@@ -113,7 +115,7 @@ describe("He", () => {
     gameStore.game.dapai = null;
     gameStore.game.turn = "xiajia";
     gameStore.game.status = "ready";
-    gameStore.game.action = "chi";
+    gameStore.game.action = "fulou";
     gameStore.game.fulou = new Fulou(
       "chi",
       new Pai("m", 1),
@@ -132,7 +134,7 @@ describe("He", () => {
     gameStore.game.dapai = null;
     gameStore.game.turn = "xiajia";
     gameStore.game.status = "ready";
-    gameStore.game.action = "peng";
+    gameStore.game.action = "fulou";
     gameStore.game.fulou = new Fulou(
       "peng",
       new Pai("m", 2),
@@ -159,6 +161,7 @@ describe("He", () => {
     await flushPromises();
     //リーチ
     gameStore.game.dapai = null;
+    await flushPromises();
     gameStore.game.status = "thinking";
     gameStore.game.action = "dapai";
     gameStore.game.turn = "main";
@@ -172,7 +175,7 @@ describe("He", () => {
     gameStore.game.dapai = null;
     gameStore.game.turn = "xiajia";
     gameStore.game.status = "ready";
-    gameStore.game.action = "chi";
+    gameStore.game.action = "fulou";
     gameStore.game.fulou = new Fulou(
       "chi",
       new Pai("m", 2),
@@ -192,6 +195,7 @@ describe("He", () => {
     expect(wrapper.findAllComponents("img")[1].classes("roated")).toBe(true);
     //次のダパイでは通常通り
     gameStore.game.dapai = null;
+    await flushPromises();
     gameStore.game.turn = "main";
     gameStore.game.action = "dapai";
     gameStore.game.status = "ready";

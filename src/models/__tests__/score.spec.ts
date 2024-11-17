@@ -9,52 +9,39 @@ describe("useScore", () => {
   it("useScore init", () => {
     let score;
     score = useScore(new Score());
-    score = useScore(new Score(
-      "南",
-      "南",
-      [
+    score = useScore(new Score({
+      zhuangfeng:"南",
+      menfeng:"南",
+      baopai:[
         new Pai("m", 1),
         new Pai("m", 2),
         new Pai("m", 3),
         new Pai("m", 4),
         new Pai("m", 5),
       ],
-      69,
-      7,
-      1,
-      2,
-      [10000, 20000, 30000, 40000]
+      paishu:69,
+      jushu:7,
+      jicun:1,
+      changbang:2,
+      defen:[10000, 20000, 30000, 40000]}
     ));
 
     //例外
     expect(() => {
-      useScore(new Score("南", "南", []))
+      useScore(new Score({baopai:[]}))
     }).toThrowError(); //ドラを指定しない
     expect(() => {
-      new Score("南", "南", [
+      new Score({baopai: [
         new Pai("m", 1),
         new Pai("m", 2),
         new Pai("m", 3),
         new Pai("m", 4),
         new Pai("m", 5),
         new Pai("m", 6),
-      ]);
+      ]});
     }).toThrowError(); //ドラを多数指定
     expect(() => {
-      useScore(new Score("南",
-      "南",
-      [
-        new Pai("m", 1),
-        new Pai("m", 2),
-        new Pai("m", 3),
-        new Pai("m", 4),
-        new Pai("m", 5),
-      ],
-      69,
-      7,
-      1,
-      2,
-      [10000, 20000, 30000]));
+      useScore(new Score({defen:[10000, 20000, 30000]}));
     }).toThrowError(); //得点の要素が３つ
   })
   it("useScore getJushuName", () => {
@@ -87,5 +74,10 @@ describe("useScore", () => {
     expect(score.value.getPlayerFeng()).toStrictEqual(["西","北","東","南",])
     score.value.menfeng="北"
     expect(score.value.getPlayerFeng()).toStrictEqual(["北","東","南","西",])
+  })
+
+  it("update",()=>{
+    let score;
+    score = useScore(new Score());
   })
 });

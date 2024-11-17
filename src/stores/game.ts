@@ -3,32 +3,20 @@ import { defineStore } from "pinia";
 import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "@/models/type";
 import { type Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
+import { Settings } from "@/models/settings";
 import { Score } from "@/models/score";
 import { Board, GameStatus } from "@/models/board";
-
-// export interface GameStore {
-//   action: PlayerAction | null;
-//   turn: Position | null;
-//   status: PlayerStatus | null;
-//   dapai: Pai | null;
-//   zimopai: Pai | null;
-//   canFulouList: Fulou[];
-//   fulou: Fulou | null;
-//   score: Score;
-// }
 
 export const useGameStore = defineStore("game", {
   state: () => ({
     game: new GameStatus(),
     score: new Score(),
+    settings: new Settings(),
   }),
   getters: {
     canDapai: (state) => {
       return state.game.action == "dapai" && state.game.turn == "main" && state.game.status == "thinking";
     },
-    // canLipai: (state) => {
-    //   return state.action == "zimo"
-    // },
     canPeng: (state) => {
       if (
         state.game.action !== "dapai" ||
@@ -94,31 +82,23 @@ export const useGameStore = defineStore("game", {
       const matchingFulou = state.game.canFulouList.filter((f) => f.type === "angang" || f.type === "jiagang");
       return matchingFulou.length;
     },
-    // recievedZimopai: (state) => {
-    //   return (
-    //     state.action == "zimo" &&
-    //     state.status == "thinking" &&
-    //     state.zimopai
-    //   );
-    // },
-    // doneDapai:(state)=>{
-    //   return (
-    //     state.action == "dapai" &&
-    //     state.status == "ready" &&
-    //     state.dapai
-    //   )
-    // }
+    kaiju: (state) => {
+      return state.game.action == "kaiju" && state.game.qipai.length > 0;
+    },
   },
   actions: {
     canLipai(position: Position) {
       if (position == "main") return this.game.turn == "xiajia" && this.game.action == "zimo";
       else if (position == "xiajia") return this.game.turn == "duimian" && this.game.action == "zimo";
       else if (position == "duimian") return this.game.turn == "shangjia" && this.game.action == "zimo";
-      else if (position == "shangjia") return this.game.turn == "main" && this.game.action == "zimo";
+      else return this.game.turn == "main" && this.game.action == "zimo";
     },
     recievedZimopai(position: Position) {
       return (
-        this.game.action == "zimo" && this.game.status == "thinking" && this.game.turn == position && this.game.zimopai
+        this.game.action == "zimo" &&
+        this.game.status == "thinking" &&
+        this.game.turn == position &&
+        this.game.zimopai != null
       );
     },
     doneDapai(position: Position) {
@@ -126,37 +106,38 @@ export const useGameStore = defineStore("game", {
         (this.game.action == "dapai" || this.game.action == "lizhi") &&
         this.game.status == "ready" &&
         this.game.turn == position &&
-        this.game.dapai
+        this.game.dapai != null
       );
     },
     isLizhi(position: Position) {
       return (
-        this.game.action == "lizhi" && this.game.status == "ready" && this.game.turn == position && this.game.dapai
+        this.game.action == "lizhi" &&
+        this.game.status == "ready" &&
+        this.game.turn == position &&
+        this.game.dapai != null
       );
     },
     doneFulouToMe(position: Position) {
       return (
-        (this.game.action == "chi" || this.game.action == "peng" || this.game.action == "minggang") &&
+        this.game.action == "fulou" &&
         this.game.status == "ready" &&
         this.game.turn != position &&
-        this.game.fulou &&
+        this.game.fulou != null &&
+        (this.game.fulou.type == "chi" || this.game.fulou.type == "peng" || this.game.fulou.type == "minggang") &&
         this.game.fulou.position == position
       );
     },
     doneFulou(position: Position) {
       return (
-        (this.game.action == "chi" ||
-          this.game.action == "peng" ||
-          this.game.action == "minggang" ||
-          this.game.action == "angang" ||
-          this.game.action == "jiagang") &&
+        this.game.action == "fulou" &&
         this.game.status == "ready" &&
         this.game.turn == position &&
-        this.game.fulou 
+        this.game.fulou != null
       );
     },
-    // increment() {
-    //   this.count++;
-    // },
+    doneZimo(position?: Position) {
+      return this.game.action == "zimo" && this.game.status == "ready" && position ? this.game.turn == position : true;
+    },
+
   },
 });

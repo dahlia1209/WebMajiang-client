@@ -10,7 +10,6 @@ import {
   type SimpleMessage,
   MessageType,
   type WebSocketMessage,
-  type ActionMessage,
   type ScoreMessage,
   type GameMessage,
 } from "@/services/webSocketService";
@@ -55,7 +54,7 @@ describe("useWebSocketService", () => {
     const mb = new MessageEvent("message", {
       data: JSON.stringify({
         type: MessageType.Game,
-        game: new GameStatus("dapai", "main", "ready", new Pai("m", 1)),
+        game: { action: "dapai", turn: "main", status: "ready", dapai: "m1" },
       }),
     });
     client.handleWebSocketMessage(mb);
@@ -65,28 +64,29 @@ describe("useWebSocketService", () => {
     expect(mbr.game.action).toBe("dapai");
     expect(mbr.game.turn).toBe("main");
     expect(mbr.game.status).toBe("ready");
-    expect(mbr.game.dapai?.num).toStrictEqual(1);
-    expect(mbr.game.dapai?.suit).toStrictEqual("m");
+    expect(mbr.game.dapai).toStrictEqual("m1");
 
     const mc = new MessageEvent("message", {
       data: JSON.stringify({
         type: MessageType.Score,
-        zhuangfeng: "東",
-        menfeng: "東",
-        jushu: 1,
-        jicun: 2,
-        changbang: 3,
-        defen: [25000, 25000, 25000, 25000],
+        score: {
+          zhuangfeng: "東",
+          menfeng: "東",
+          jushu: 1,
+          jicun: 2,
+          changbang: 3,
+          defen: [25000, 25000, 25000, 25000],
+        },
       } as ScoreMessage),
     });
     client.handleWebSocketMessage(mc);
     expect(client.messages.value.length).toBe(3);
     expect((client.messages.value[2] as ScoreMessage).type).toBe(MessageType.Score);
-    expect((client.messages.value[2] as ScoreMessage).zhuangfeng).toBe("東");
-    expect((client.messages.value[2] as ScoreMessage).menfeng).toBe("東");
-    expect((client.messages.value[2] as ScoreMessage).jushu).toBe(1);
-    expect((client.messages.value[2] as ScoreMessage).jicun).toBe(2);
-    expect((client.messages.value[2] as ScoreMessage).changbang).toBe(3);
-    expect((client.messages.value[2] as ScoreMessage).defen).toStrictEqual([25000, 25000, 25000, 25000]);
+    expect((client.messages.value[2] as ScoreMessage).score.zhuangfeng).toBe("東");
+    expect((client.messages.value[2] as ScoreMessage).score.menfeng).toBe("東");
+    expect((client.messages.value[2] as ScoreMessage).score.jushu).toBe(1);
+    expect((client.messages.value[2] as ScoreMessage).score.jicun).toBe(2);
+    expect((client.messages.value[2] as ScoreMessage).score.changbang).toBe(3);
+    expect((client.messages.value[2] as ScoreMessage).score.defen).toStrictEqual([25000, 25000, 25000, 25000]);
   });
 });

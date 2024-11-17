@@ -8,16 +8,19 @@ export class Pai {
   readonly isRed: boolean;
   readonly id: string;
 
-  constructor(
-    suit: PaiSuit,
-    num: number,
-    isRed: boolean = false,
-    id: string = uuidv4()
-  ) {
-    this.suit = suit;
+  constructor(suit: PaiSuit, num: number, isRed: boolean = false, id: string = uuidv4()) {
+    this.suit = this.validateSuit(suit);
     this.num = this.validateNum(num, suit);
     this.isRed = this.validateIsRed(isRed, suit, num);
     this.id = id;
+  }
+
+  private validateSuit(suit: string) {
+    if (suit === "m" || suit === "p" || suit === "s" || suit === "b" || suit === "z") {
+      return suit;
+    } else {
+      throw new Error(`正しい牌種を指定してください。指定された牌種：${suit}`);
+    }
   }
 
   private validateNum(num: number, suit: PaiSuit): number {
@@ -44,11 +47,7 @@ export class Pai {
 
   equals(other: Pai, isRed: boolean = false): boolean {
     if (isRed) {
-      return (
-        this.num === other.num &&
-        this.suit === other.suit &&
-        this.isRed === other.isRed
-      );
+      return this.num === other.num && this.suit === other.suit && this.isRed === other.isRed;
     } else {
       return this.num === other.num && this.suit === other.suit;
     }
@@ -59,6 +58,27 @@ export class Pai {
     return this.suit.toString() + numStr;
   }
 
+  seriarize() {
+    const a = this.isRed ? "t" : "f";
+    const s = this.suit + String(this.num) + a;
+    return s;
+  }
+
+  static deseriarize(str: string) {
+    if (str.length < 2 || str.length > 3) {
+      throw new Error("文字数は2~3文字にしてください");
+    }
+
+    try {
+      const s = str[0] as PaiSuit;
+      const n = Number(str[1]);
+      const r = str.length == 3 && str[2] == "t";
+      return new Pai(s, n, r);
+    } catch (error) {
+      console.log("error");
+      throw new Error(`正しい文字を指定してください。与えられた文字:${str}`);
+    }
+  }
 }
 
 export const usePai = (pai: Pai) => {

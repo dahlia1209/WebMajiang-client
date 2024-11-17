@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach,afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { Pai } from "@/models/pai";
 import { Board, GameStatus } from "@/models/board";
@@ -7,10 +7,10 @@ import { He } from "@/models/he";
 import BoardView from "../Board.vue";
 import { createTestingPinia } from "@pinia/testing";
 import { useGameStore } from "@/stores/game";
-import { MessageType, useWebSocketService, type WebSocketMessage } from "@/services/webSocketService";
+import { MessageType, useWebSocketService, type WebSocketMessage, type GameMessage } from "@/services/webSocketService";
 import { setActivePinia, createPinia } from "pinia";
 import { Score } from "@/models/score";
-import WS from 'vitest-websocket-mock';
+import WS from "vitest-websocket-mock";
 
 describe("Shoupai", () => {
   beforeEach(() => {
@@ -23,11 +23,11 @@ describe("Shoupai", () => {
     WS.clean();
   });
   it("renders properly", async () => {
-    const server = new WS('ws://localhost:8000/ws');
+    const server = new WS("ws://127.0.0.1:8000/ws");
     let wrapper;
     //初期状態
     wrapper = mount(BoardView, { props: { board: new Board() } });
-    await server.connected
+    await server.connected;
     expect(wrapper.findComponent(".main-he").exists()).toBe(true);
     expect(wrapper.findComponent(".main-he").findAll("img").length).toBe(0);
     expect(wrapper.findComponent(".xiajia-he").exists()).toBe(true);
@@ -85,7 +85,7 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-shoupai").findAll("img").length).toBe(13);
 
     expect(wrapper.findComponent(".score").exists()).toBe(true);
-    expect(wrapper.findComponent(".score").findAll("img").length).toBe(5);
+    expect(wrapper.findComponent(".score").find(".baopai").findAll("img").length).toBe(5);
     expect(wrapper.findComponent(".score").findAll("img")[0].attributes("name")).toBe("b0");
     expect(wrapper.findComponent(".score").findAll("img")[4].attributes("name")).toBe("b0");
 
@@ -93,8 +93,8 @@ describe("Shoupai", () => {
     wrapper = mount(BoardView, {
       props: {
         board: new Board(
-          new GameStatus("dapai", "main", "thinking"),
-          new Score("南", "西", [new Pai("z", 7)]),
+          new GameStatus({ action: "dapai", turn: "main", status: "thinking" }),
+          new Score({ zhuangfeng: "南", menfeng: "西", baopai: [new Pai("z", 7)] }),
           [
             new Shoupai(
               createPais(["1m", "1m", "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "9m", "9m"]),
@@ -134,13 +134,18 @@ describe("Shoupai", () => {
     const gameStore = useGameStore();
     wrapper = mount(BoardView, {
       props: {
-        board: new Board(new GameStatus(), new Score("南", "西", [new Pai("z", 7)]), [
+        board: new Board(new GameStatus(), new Score({ zhuangfeng: "南", menfeng: "西", baopai: [new Pai("z", 7)] }), [
           new Shoupai(createPais(["1m", "1m", "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "9m", "9m"])),
         ]),
       },
     });
     // 自家ツモ
-    gameStore.$state.game = new GameStatus("zimo", "main", "thinking", null, new Pai("z", 1));
+    gameStore.$state.game = new GameStatus({
+      action: "zimo",
+      turn: "main",
+      status: "thinking",
+      zimopai: new Pai("z", 1),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").attributes("name")).toBe("z1");
     expect(wrapper.findComponent(".xiajia-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -148,7 +153,7 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").exists()).toBe(false);
 
     //自家打牌
-    gameStore.$state.game = new GameStatus("dapai", "main", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "main", status: "thinking" });
     await flushPromises();
     await wrapper.findComponent(".main-shoupai").findComponent(".zimo").trigger("click");
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").classes("hidden")).toBe(true);
@@ -162,7 +167,12 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-he").findAllComponents("img").length).toBe(0);
 
     //下家ツモ
-    gameStore.$state.game = new GameStatus("zimo", "xiajia", "thinking", null, new Pai("b", 0));
+    gameStore.$state.game = new GameStatus({
+      action: "zimo",
+      turn: "xiajia",
+      status: "thinking",
+      zimopai: new Pai("b", 0),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
     expect(wrapper.findComponent(".xiajia-shoupai").findComponent(".zimo").attributes("name")).toBe("b0");
@@ -170,7 +180,7 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").exists()).toBe(false);
 
     //下家打牌
-    gameStore.$state.game = new GameStatus("dapai", "xiajia", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "xiajia", status: "thinking" });
     await flushPromises();
     await wrapper.findComponent(".xiajia-shoupai").findComponent(".zimo").trigger("click"); //クリックしても反応しないことを確認
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -178,7 +188,12 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".duimian-shoupai").findComponent(".zimo").exists()).toBe(false);
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").exists()).toBe(false);
 
-    gameStore.$state.game = new GameStatus("dapai", "xiajia", "ready", new Pai("z", 2));
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "xiajia",
+      status: "ready",
+      dapai: new Pai("z", 2),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".xiajia-shoupai").find(".bingpai").findAll("img")[0].classes("hidden")).toBe(true);
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -192,7 +207,12 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-he").findAllComponents("img").length).toBe(0);
 
     //対面ツモ
-    gameStore.$state.game = new GameStatus("zimo", "duimian", "thinking", null, new Pai("b", 0));
+    gameStore.$state.game = new GameStatus({
+      action: "zimo",
+      turn: "duimian",
+      status: "thinking",
+      zimopai: new Pai("b", 0),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
     expect(wrapper.findComponent(".xiajia-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -200,7 +220,7 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").exists()).toBe(false);
 
     //対面打牌
-    gameStore.$state.game = new GameStatus("dapai", "duimian", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "duimian", status: "thinking" });
     await flushPromises();
     await wrapper.findComponent(".duimian-shoupai").findComponent(".zimo").trigger("click"); //クリックしても反応しないことを確認
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -208,7 +228,12 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".duimian-shoupai").findComponent(".zimo").classes("hidden")).toBe(false);
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").exists()).toBe(false);
 
-    gameStore.$state.game = new GameStatus("dapai", "duimian", "ready", new Pai("z", 3));
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "duimian",
+      status: "ready",
+      dapai: new Pai("z", 3),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".duimian-shoupai").find(".bingpai").findAll("img")[0].classes("hidden")).toBe(true);
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -222,7 +247,12 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-he").findAllComponents("img").length).toBe(0);
 
     //上家ツモ
-    gameStore.$state.game = new GameStatus("zimo", "shangjia", "thinking", null, new Pai("b", 0));
+    gameStore.$state.game = new GameStatus({
+      action: "zimo",
+      turn: "shangjia",
+      status: "thinking",
+      zimopai: new Pai("b", 0),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
     expect(wrapper.findComponent(".xiajia-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -230,7 +260,7 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").attributes("name")).toBe("b0");
 
     //上家打牌
-    gameStore.$state.game = new GameStatus("dapai", "shangjia", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "shangjia", status: "thinking" });
     await flushPromises();
     await wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").trigger("click"); //クリックしても反応しないことを確認
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -238,7 +268,12 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".duimian-shoupai").findComponent(".zimo").exists()).toBe(false);
     expect(wrapper.findComponent(".shangjia-shoupai").findComponent(".zimo").classes("hidden")).toBe(false);
 
-    gameStore.$state.game = new GameStatus("dapai", "shangjia", "ready", new Pai("z", 4));
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "shangjia",
+      status: "ready",
+      dapai: new Pai("z", 4),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".shangjia-shoupai").find(".bingpai").findAll("img")[0].classes("hidden")).toBe(true);
     expect(wrapper.findComponent(".main-shoupai").findComponent(".zimo").exists()).toBe(false);
@@ -259,7 +294,7 @@ describe("Shoupai", () => {
     const gameStore = useGameStore();
     wrapper = mount(BoardView, {
       props: {
-        board: new Board(new GameStatus(), new Score("東", "南", [new Pai("z", 7)]), [
+        board: new Board(new GameStatus(), new Score({ zhuangfeng: "東", menfeng: "南", baopai: [new Pai("z", 7)] }), [
           new Shoupai(
             createPais(["1m", "1m", "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "9m", "9m"]),
             null,
@@ -272,13 +307,24 @@ describe("Shoupai", () => {
     });
 
     //上家ツモ
-    gameStore.$state.game = new GameStatus("zimo", "shangjia", "thinking", null, new Pai("b", 0));
+    gameStore.$state.game = new GameStatus({
+      action: "zimo",
+      turn: "shangjia",
+      status: "thinking",
+      zimopai: new Pai("b", 0),
+    });
     await flushPromises();
 
     //上家打牌
-    gameStore.$state.game = new GameStatus("dapai", "shangjia", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "shangjia", status: "thinking" });
     await flushPromises();
-    gameStore.$state.game = new GameStatus("dapai", "shangjia", "ready", new Pai("m", 1), null, canFulouList);
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "shangjia",
+      status: "ready",
+      dapai: new Pai("m", 1),
+      canFulouList: canFulouList,
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").findAll("button").length).toBe(2);
     expect(wrapper.findComponent(".main-shoupai").findAll("button")[0].classes("hidden")).toBe(false);
@@ -288,7 +334,7 @@ describe("Shoupai", () => {
     await wrapper.findComponent(".main-shoupai").findAll("button")[1].trigger("click");
     fulou = canFulouList[0];
     fulou.position = "shangjia";
-    gameStore.$state.game = new GameStatus("chi", "main", "ready", null, null, [], fulou);
+    gameStore.$state.game = new GameStatus({ action: "fulou", turn: "main", status: "ready", fulou });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img").length).toBe(11);
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img")[0].attributes("name")).toBe("m1");
@@ -300,7 +346,7 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".main-shoupai").findAll("button")[0].classes("hidden")).toBe(true);
 
     //自家打牌
-    gameStore.$state.game = new GameStatus("dapai", "main", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "main", status: "thinking" });
     await flushPromises();
     await wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img")[0].trigger("click");
     expect(wrapper.findComponent(".main-he").findAllComponents("img").length).toBe(1);
@@ -310,7 +356,7 @@ describe("Shoupai", () => {
 
     //下家チー
     fulou = new Fulou("chi", new Pai("m", 1), createPais(["2m", "3m"]), "main");
-    gameStore.$state.game = new GameStatus("chi", "xiajia", "ready", null, null, [], fulou);
+    gameStore.$state.game = new GameStatus({ action: "fulou", turn: "xiajia", status: "ready", fulou });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img").length).toBe(10);
     expect(wrapper.findComponent(".xiajia-shoupai").find(".bingpai").findAll("img").length).toBe(11);
@@ -319,9 +365,14 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".xiajia-shoupai").find(".fulou").findAll(".mianzi").length).toBe(1);
 
     //下家打牌
-    gameStore.$state.game = new GameStatus("dapai", "xiajia", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "xiajia", status: "thinking" });
     await flushPromises();
-    gameStore.$state.game = new GameStatus("dapai", "xiajia", "ready", new Pai("p", 1));
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "xiajia",
+      status: "ready",
+      dapai: new Pai("p", 1),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-he").findAllComponents("img").length).toBe(0);
     expect(wrapper.findComponent(".xiajia-he").findAllComponents("img").length).toBe(1);
@@ -330,7 +381,7 @@ describe("Shoupai", () => {
 
     //対面チー
     fulou = new Fulou("chi", new Pai("p", 1), createPais(["2p", "3p"]), "xiajia");
-    gameStore.$state.game = new GameStatus("chi", "duimian", "ready", null, null, [], fulou);
+    gameStore.$state.game = new GameStatus({ action: "fulou", turn: "duimian", status: "ready", fulou });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img").length).toBe(10);
     expect(wrapper.findComponent(".xiajia-shoupai").find(".bingpai").findAll("img").length).toBe(10);
@@ -339,9 +390,14 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".duimian-shoupai").find(".fulou").findAll(".mianzi").length).toBe(1);
 
     //対面打牌
-    gameStore.$state.game = new GameStatus("dapai", "duimian", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "duimian", status: "thinking" });
     await flushPromises();
-    gameStore.$state.game = new GameStatus("dapai", "duimian", "ready", new Pai("s", 1));
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "duimian",
+      status: "ready",
+      dapai: new Pai("s", 1),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-he").findAllComponents("img").length).toBe(0);
     expect(wrapper.findComponent(".xiajia-he").findAllComponents("img").length).toBe(0);
@@ -350,7 +406,7 @@ describe("Shoupai", () => {
 
     //上家チー
     fulou = new Fulou("chi", new Pai("s", 1), createPais(["2s", "3s"]), "duimian");
-    gameStore.$state.game = new GameStatus("chi", "shangjia", "ready", null, null, [], fulou);
+    gameStore.$state.game = new GameStatus({ action: "fulou", turn: "shangjia", status: "ready", fulou });
     await flushPromises();
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img").length).toBe(10);
     expect(wrapper.findComponent(".xiajia-shoupai").find(".bingpai").findAll("img").length).toBe(10);
@@ -359,9 +415,14 @@ describe("Shoupai", () => {
     expect(wrapper.findComponent(".shangjia-shoupai").find(".fulou").findAll(".mianzi").length).toBe(1);
 
     //上家打牌
-    gameStore.$state.game = new GameStatus("dapai", "shangjia", "thinking");
+    gameStore.$state.game = new GameStatus({ action: "dapai", turn: "shangjia", status: "thinking" });
     await flushPromises();
-    gameStore.$state.game = new GameStatus("dapai", "shangjia", "ready", new Pai("z", 1));
+    gameStore.$state.game = new GameStatus({
+      action: "dapai",
+      turn: "shangjia",
+      status: "ready",
+      dapai: new Pai("z", 1),
+    });
     await flushPromises();
     expect(wrapper.findComponent(".main-he").findAllComponents("img").length).toBe(0);
     expect(wrapper.findComponent(".xiajia-he").findAllComponents("img").length).toBe(0);
@@ -372,19 +433,29 @@ describe("Shoupai", () => {
   it("message handler", async () => {
     let wrapper;
     const gameStore = useGameStore();
-    const server = new WS('ws://localhost:8000/ws');
+    const server = new WS("ws://127.0.0.1:8000/ws");
     wrapper = mount(BoardView, {
       props: {
-        board: new Board(new GameStatus(), new Score("南", "西", [new Pai("z", 7)]), [
-          new Shoupai(createPais(["1m", "1m", "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "9m", "9m"])),
-        ]),
+        board: new Board(),
       },
     });
-    await server.connected
+    await server.connected;
+    expect(wrapper.findComponent(".main-shoupai").findAllComponents("img").length).toBe(13);
+    expect(wrapper.findComponent(".main-shoupai").findAllComponents("img")[0].attributes("name")).toBe("b0");
+    expect(wrapper.findComponent(".main-shoupai").findAllComponents("img")[12].attributes("name")).toBe("b0");
     const gma = {
       type: MessageType.Game,
-      game: new GameStatus("zimo","xiajia","thinking",null,),
-    } as WebSocketMessage;
-    server.send(JSON.stringify(gma))
+      game: {
+        action: "kaiju",
+        canFulouList: [],
+        qipai: "m1f+m1f+m1f+m2f+m3f+m4f+m5f+m6f+m7f+m8f+m9f+m9f+m9f",
+      },
+    } as GameMessage;
+    //開始
+    server.send(JSON.stringify(gma));
+    await flushPromises();
+    expect(wrapper.findComponent(".main-shoupai").findAllComponents("img").length).toBe(13);
+    expect(wrapper.findComponent(".main-shoupai").findAllComponents("img")[0].attributes("name")).toBe("m1");
+    expect(wrapper.findComponent(".main-shoupai").findAllComponents("img")[12].attributes("name")).toBe("m9");
   });
 });

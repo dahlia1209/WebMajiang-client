@@ -3,12 +3,18 @@ import { Pai } from "./pai";
 import { Shoupai, Fulou, createPais } from "./shoupai";
 import { Score } from "./score";
 import { He } from "./he";
-import {
-  type Position,
-  type PlayerStatus,
-  type PlayerAction,
-  type Feng,
-} from "@/models/type";
+import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "@/models/type";
+
+export interface GameStatusProperty {
+  action?: PlayerAction | null;
+  turn?: Position | null;
+  status?: PlayerStatus | null;
+  dapai?: Pai | null;
+  zimopai?: Pai | null;
+  canFulouList?: Fulou[];
+  fulou?: Fulou | null;
+  qipai?: Pai[];
+}
 
 export class GameStatus {
   action;
@@ -18,23 +24,28 @@ export class GameStatus {
   zimopai;
   canFulouList;
   fulou;
+  qipai;
 
-  constructor(
-    action: PlayerAction | null = null,
-    turn: Position | null = null,
-    status: PlayerStatus | null = null,
-    dapai: Pai | null = null,
-    zimopai: Pai | null = null,
-    canFulouList: Fulou[] = [],
-    fulou: Fulou | null = null
-  ) {
-    this.action = action;
-    this.turn = turn;
-    this.status = status;
-    this.dapai = dapai;
-    this.zimopai = zimopai;
-    this.canFulouList = canFulouList;
-    this.fulou = fulou;
+  constructor(option?: GameStatusProperty) {
+    this.action = option && option.action ? option.action : null;
+    this.turn = option && option.turn ? option.turn : null;
+    this.status = option && option.status ? option.status : null;
+    this.dapai = option && option.dapai ? option.dapai : null;
+    this.zimopai = option && option.zimopai ? option.zimopai : null;
+    this.canFulouList = option && option.canFulouList ? option.canFulouList : [];
+    this.fulou = option && option.fulou ? option.fulou : null;
+    this.qipai = option && option.qipai ? option.qipai : [];
+  }
+
+  update(option: GameStatusProperty) {
+    this.action = option.action === undefined ? this.action : option.action;
+    this.turn = option.turn === undefined ? this.turn : option.turn;
+    this.status = option.status === undefined ? this.status : option.status;
+    this.dapai = option.dapai === undefined ? this.dapai : option.dapai;
+    this.zimopai = option.zimopai === undefined ? this.zimopai : option.zimopai;
+    this.canFulouList = option.canFulouList === undefined ? this.canFulouList : option.canFulouList;
+    this.fulou = option.fulou === undefined ? this.fulou : option.fulou;
+    this.qipai = option.qipai === undefined ? this.qipai : option.qipai;
   }
 }
 
@@ -44,12 +55,7 @@ export class Board {
   shoupai;
   he;
 
-  constructor(
-    gameStatus = new GameStatus(),
-    score = new Score(),
-    shoupai: Shoupai[] = [],
-    he: He[] = []
-  ) {
+  constructor(gameStatus = new GameStatus(), score = new Score(), shoupai: Shoupai[] = [], he: He[] = []) {
     this.gameStatus = gameStatus;
     this.score = score;
     this.shoupai = this.validateShoupai(shoupai);
@@ -75,23 +81,7 @@ export class Board {
       const shoupais: Shoupai[] = [];
       for (let index = 0; index < fillCnt; index++) {
         shoupais.push(
-          new Shoupai(
-            createPais([
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-              "0b",
-            ])
-          )
+          new Shoupai(createPais(["0b", "0b", "0b", "0b", "0b", "0b", "0b", "0b", "0b", "0b", "0b", "0b", "0b"]))
         );
       }
       return [...shoupai, ...shoupais];

@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watchEffect, watchPostEffect, watch } from 'vue'
-import HelloWorld from './HelloWorld.vue'
-import TheWelcome from './TheWelcome.vue'
-import PaiView from './Pai.vue'
 import ShoupaiView from './Shoupai.vue'
 import HeView from './He.vue'
 import ScoreView from './Score.vue'
@@ -12,14 +9,14 @@ import { Shoupai, createPais, Fulou } from "@/models/shoupai";
 import { Board, GameStatus, useBoard } from "@/models/board";
 import { He } from "@/models/he";
 import { Score } from "@/models/score";
-import { MessageType, useWebSocketService, type WebSocketMessage, } from "@/services/webSocketService";
+import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 import { useGameStore } from '@/stores/game'
 
 const props = defineProps<{
   board: Board,
 }>()
 const gameStore = useGameStore()
-const client = useWebSocketService("ws://localhost:8000/ws")
+const client = useWebSocketService(import.meta.env.VITE_WEBSOCKET_ENDPOINT)
 const b = useBoard(props.board)
 onMounted(() => {
   gameStore.game = props.board.gameStatus
@@ -27,38 +24,55 @@ onMounted(() => {
 })
 
 const messageHandler = (msg: any) => {
+  if (!msg) return
   try {
     const m = msg as WebSocketMessage
     switch (m.type) {
       case MessageType.Game:
-        const content = m.game
-        const dapai = content.dapai ? new Pai(content.dapai[0] as PaiSuit, Number(content.dapai[1])) : null
-        const zimo = content.zimopai ? new Pai(content.zimopai[0] as PaiSuit, Number(content.zimopai[1])) : null
-        gameStore.game = new GameStatus(content.action, content.turn, content.status, dapai, zimo,)
-
+        console.log("clientonmessage",m)
+        const gc = m.game
+        const gd = gc.dapai === undefined || gc.dapai === null ? gc.dapai : new Pai(gc.dapai[0] as PaiSuit, Number(gc.dapai[1]))
+        const gz = gc.zimopai === undefined || gc.zimopai === null ? gc.zimopai : new Pai(gc.zimopai[0] as PaiSuit, Number(gc.zimopai[1]))
+        const gfl = gc.canFulouList === undefined||gc.canFulouList === null ? undefined : gc.canFulouList.map(f => Fulou.deserialize(f))
+        const gf = gc.fulou === undefined || gc.fulou === null ? gc.fulou : Fulou.deserialize(gc.fulou)
+        const gq = gc.qipai === undefined||gc.qipai === null ? undefined : gc.qipai.split("+").map(ps => Pai.deseriarize(ps))
+        gameStore.game.update({ action: gc.action, turn: gc.turn, status: gc.status, dapai: gd, zimopai: gz, canFulouList: gfl, fulou: gf, qipai: gq })
         break;
+      case MessageType.Score:
+        gameStore.score.update({
+          baopai: m.score.baopai ? m.score.baopai.map(ps => Pai.deseriarize(ps)) : undefined,
+          zhuangfeng: m.score.zhuangfeng ?? undefined,
+          menfeng: m.score.menfeng ?? undefined,
+          changbang: m.score.changbang ?? undefined,
+          defen: m.score.defen ?? undefined,
+          jicun: m.score.jicun ?? undefined,
+          jushu: m.score.jushu ?? undefined,
+        })
+        break;
+
 
       default:
         break;
     }
   } catch (error) {
-    console.log("メッセージタイプが正しくありません", msg)
+    console.log("メッセージが正しくありません", msg)
   }
 }
 
-watchEffect(() => {
-  const msgs = client.messages.value
-  messageHandler(msgs[msgs.length - 1])
-
-
+watch(client.messages.value, () => {
+  const msg = client.messages.value.shift()
+  messageHandler(msg)
 })
 
-const actionHandler = (payload: { action: PlayerAction, dapai?: Pai, fulou?: Fulou }) => {
-  if (payload.action == "dapai" && payload.dapai) {
-    gameStore.game.status = "ready"
+const actionHandler = (payload?: callbackProperty) => {
+  if (payload && payload.action == "dapai" && payload.dapai) {  
     gameStore.game.dapai = payload.dapai
-    client.sendSampleMessage("dapai done")
+  } else if (payload && payload.action == "fulou" && payload.fulou) {
+    gameStore.game.dapai =null
   }
+  gameStore.game.status = "ready"
+  console.log("clientSendMessage",payload)
+  client.callbackMessage(payload)
 }
 
 

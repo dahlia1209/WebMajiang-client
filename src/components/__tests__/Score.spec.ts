@@ -24,8 +24,8 @@ describe("Overview", () => {
     expect(wrapper.findAllComponents("img")[0].attributes("name")).toBe("b0");
     expect(wrapper.findAllComponents("img")[4].attributes("name")).toBe("b0");
     expect(wrapper.find('[class="jushu"]').text()).toBe("東1局");
-    expect(wrapper.find('[class="changbang"]').text()).toBe("積み棒:0");
-    expect(wrapper.find('[class="jicun"]').text()).toBe("供託:0");
+    expect(wrapper.find('[class="changbang"]').text()).toBe(":0");
+    expect(wrapper.find('[class="jicun"]').text()).toBe(":0");
     expect(wrapper.find('[class="shangjia"]').text()).toBe("北:25000");
     expect(wrapper.find('[class="duimian"]').text()).toBe("西:25000");
     expect(wrapper.find('[class="main"]').text()).toBe("東:25000");
@@ -51,12 +51,12 @@ describe("Overview", () => {
     //積み棒
     gameStore.score.changbang=1
     await flushPromises();
-    expect(wrapper.find('[class="changbang"]').text()).toBe("積み棒:1");
+    expect(wrapper.find('[class="changbang"]').text()).toBe(":1");
 
     //供託
     gameStore.score.jicun=2
     await flushPromises();
-    expect(wrapper.find('[class="jicun"]').text()).toBe("供託:2");
+    expect(wrapper.find('[class="jicun"]').text()).toBe(":2");
 
     //得点
     gameStore.score.defen=[10000,20000,30000,40000]
