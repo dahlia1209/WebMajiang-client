@@ -50,17 +50,21 @@ describe("Shoupai", () => {
 
   it("dapai", async () => {
     const gameStore = useGameStore();
-    gameStore.game.action = "dapai";
-    gameStore.game.status = "thinking";
+    gameStore.game.action = "zimo";
     gameStore.game.turn = "main";
+    gameStore.game.zimopai = new Pai("z", 1)
+    // gameStore.game.status = "thinking";
 
     //自分の手牌
     bingpai = createPais(["1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "1p", "1p", "2p", "3p"]);
-    zimopai = new Pai("z", 1);
+    zimopai = gameStore.game.zimopai as Pai;
     wrapper = mount(ShoupaiView, {
       props: { shoupai: new Shoupai(bingpai, zimopai), position: "main" },
     });
     //手牌選択
+    expect(gameStore.mainZimoStatus).toBe(true)
+    console.log(wrapper.findAllComponents("img")[0].classes());
+    expect(wrapper.findAllComponents("img")[0].classes("clickable")).toBe(true);
     await wrapper.findAllComponents("img")[0].trigger("click");
     expect(wrapper.findAllComponents("img")[0].classes("clickable")).toBe(false);
     expect(wrapper.findAllComponents("img")[0].classes("hidden")).toBe(true);
@@ -79,12 +83,13 @@ describe("Shoupai", () => {
 
   it("lipai", async () => {
     const gameStore = useGameStore();
-    gameStore.game.action = "dapai";
-    gameStore.game.status = "thinking";
+    gameStore.game.action = "zimo";
+    // gameStore.game.status = "thinking";
     gameStore.game.turn = "main";
+    gameStore.game.zimopai = new Pai("z", 1);
     //自分の手牌
     bingpai = createPais(["1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "1p", "1p", "2p", "3p"]);
-    zimopai = new Pai("z", 1);
+    zimopai = gameStore.game.zimopai as Pai;
     wrapper = mount(ShoupaiView, {
       props: { shoupai: new Shoupai(bingpai, zimopai), position: "main" },
     });
@@ -104,22 +109,26 @@ describe("Shoupai", () => {
     let fulou: Fulou[] = [];
     let zimopai: Pai | null = null;
     let shoupai: Shoupai = new Shoupai(bingpai, zimopai, fulou);
+    
+
+    //チー
+    shoupai.fulouCandidates=[Fulou.deserialize("chi,m7,m8+m9,shangjia")]
+    // let fulouCandidates = [new Fulou("chi", new Pai("m", 7), createPais(["8m", "9m"]))];
     wrapper = mount(ShoupaiView, {
       props: { shoupai: shoupai, position: "main" },
     });
-
-    //チー
-    let canFulouList = [new Fulou("chi", new Pai("m", 7), createPais(["8m", "9m"]))];
-    gameStore.game.canFulouList = canFulouList;
+    // gameStore.game.fulouCandidates = fulouCandidates;
     gameStore.game.action = "dapai";
     gameStore.game.turn = "shangjia";
-    gameStore.game.status = "ready";
-    gameStore.game.dapai = new Pai("m", 7);
+    // gameStore.game.status = "ready";
+    gameStore.game.dapai = Pai.deseriarize("m7");
+    console.log(shoupai.getCandidatesbyType(["chi"],gameStore.game.dapai as Pai))
 
     await flushPromises();
-    expect(wrapper.find(".main-action").exists()).toBe(true); //ボタンエリア
+    expect(wrapper.find(".main-player-action").exists()).toBe(true); //ボタンエリア
     expect(wrapper.findAll("button").length).toBe(2);
     expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].classes("hidden")).toBe(false);
     expect(wrapper.findAll("button")[1].text()).toBe("チー");
     expect(wrapper.find(".bingpai").findAll("img").length).toBe(11);
     expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(0);
@@ -129,15 +138,18 @@ describe("Shoupai", () => {
     expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(1);
 
     //ポン
-    canFulouList = [new Fulou("peng", new Pai("m", 1), createPais(["1m", "1m"]))];
-    gameStore.game.canFulouList = canFulouList;
+    shoupai.fulouCandidates=[Fulou.deserialize("peng,m1,m1+m1,null")]
     gameStore.game.action = "dapai";
     gameStore.game.turn = "duimian";
-    gameStore.game.status = "ready";
     gameStore.game.dapai = new Pai("m", 1);
+    wrapper = mount(ShoupaiView, {
+      props: { shoupai: shoupai, position: "main" },
+    });
     await flushPromises();
+    console.log()
     expect(wrapper.findAll("button").length).toBe(2);
     expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].classes("hidden")).toBe(false);
     expect(wrapper.findAll("button")[1].text()).toBe("ポン");
     await wrapper.findAll("button")[1].trigger("click");
     await flushPromises();
@@ -145,84 +157,68 @@ describe("Shoupai", () => {
     expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(2);
 
     //明槓
-    canFulouList = [new Fulou("minggang", new Pai("s", 5), createPais(["5s", "5s", "5s"]))];
-    gameStore.game.canFulouList = canFulouList;
+    shoupai.fulouCandidates=[Fulou.deserialize("minggang,s5,s5+s5+s5,null"),Fulou.deserialize("peng,s5,s5+s5,null")]
     gameStore.game.action = "dapai";
     gameStore.game.turn = "xiajia";
-    gameStore.game.status = "ready";
     gameStore.game.dapai = new Pai("s", 5);
+    wrapper = mount(ShoupaiView, {
+      props: { shoupai: shoupai, position: "main" },
+    });
     await flushPromises();
-    expect(wrapper.findAll("button").length).toBe(2);
+    expect(wrapper.findAll("button").length).toBe(3);
     expect(wrapper.findAll("button")[0].text()).toBe("×");
-    expect(wrapper.findAll("button")[1].text()).toBe("カン");
-    await wrapper.findAll("button")[1].trigger("click");
+    expect(wrapper.findAll("button")[0].classes("hidden")).toBe(false);
+    expect(wrapper.findAll("button")[1].text()).toBe("ポン");
+    expect(wrapper.findAll("button")[2].text()).toBe("カン");
+    await wrapper.findAll("button")[2].trigger("click");
     await flushPromises();
     expect(wrapper.find(".bingpai").findAll("img").length).toBe(4);
     expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(3);
 
     //暗槓
-    canFulouList = [new Fulou("angang", null, createPais(["7z", "7z", "7z", "7z"]))];
-    gameStore.game.canFulouList = canFulouList;
-    gameStore.game.action = "dapai";
+    shoupai.fulouCandidates=[Fulou.deserialize("angang,null,z7+z7+z7+z7,null")]
+    shoupai.zimopai=null
+    gameStore.game.action = "zimo";
     gameStore.game.turn = "main";
-    gameStore.game.status = "thinking";
+    gameStore.game.zimopai = new Pai("s", 5);
     gameStore.game.dapai = null;
-
-    await flushPromises();
-    expect(wrapper.findAll("button").length).toBe(2);
-    expect(wrapper.findAll("button")[0].text()).toBe("×");
-    expect(wrapper.findAll("button")[1].text()).toBe("カン");
-    await wrapper.findAll("button")[1].trigger("click");
-    await flushPromises();
-    expect(wrapper.find(".bingpai").findAll("img").length).toBe(0);
-    expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(4);
-
-    //加槓
-    bingpai = createPais(["8m", "9m", "1m", "1m", "5s", "5s", "5s", "7z", "7z", "7z", "7z"]);
-    fulou = [];
-    zimopai = new Pai("m", 7);
-    shoupai = new Shoupai(bingpai, zimopai, fulou);
-    shoupai.addFulou(new Fulou("peng", new Pai("m", 7), createPais(["7m", "7m"])));
     wrapper = mount(ShoupaiView, {
       props: { shoupai: shoupai, position: "main" },
     });
 
-    canFulouList = [new Fulou("jiagang", new Pai("m", 7), createPais(["7m", "7m", "7m"]))];
-    gameStore.game.canFulouList = canFulouList;
-    gameStore.game.action = "dapai";
-    gameStore.game.turn = "main";
-    gameStore.game.status = "thinking";
-    gameStore.game.dapai = null;
-
     await flushPromises();
     expect(wrapper.findAll("button").length).toBe(2);
     expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].classes("hidden")).toBe(true);
     expect(wrapper.findAll("button")[1].text()).toBe("カン");
     await wrapper.findAll("button")[1].trigger("click");
     await flushPromises();
-    expect(wrapper.find(".bingpai").findAll("img").length).toBe(11);
-    expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(1);
+    expect(wrapper.find(".bingpai").findAll("img").length).toBe(1);
+    expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(4);
 
-    //他家
-    bingpai = createPais(["8m", "9m", "1m", "1m", "5s", "5s", "5s", "7z", "7z", "7z", "7z"]);
-    fulou = [];
-    zimopai = new Pai("m", 7);
-    shoupai = new Shoupai(bingpai, zimopai, fulou);
-    shoupai.addFulou(new Fulou("peng", new Pai("m", 7), createPais(["7m", "7m"])));
+    //加槓
+    shoupai=new Shoupai()
+    shoupai.bingpai =["m8","m9","m1","m1","s5","s5","s5","z7","z7","z7"].map(x=> Pai.deseriarize(x))
+    shoupai.fulou=[Fulou.deserialize("peng,m7,m7+m7,duimian")];
+    shoupai.fulouCandidates = [Fulou.deserialize("jiagang,m7,m7+m7,null")];
+    shoupai.zimopai = Pai.deseriarize("m7");
+    gameStore.game.action = "zimo";
+    gameStore.game.turn = "main";
+    gameStore.game.zimopai = Pai.deseriarize("m7")
     wrapper = mount(ShoupaiView, {
-      props: { shoupai: shoupai, position: "xiajia" },
+      props: { shoupai: shoupai, position: "main" },
     });
 
-    gameStore.game.canFulouList = canFulouList;
-    gameStore.game.action = "dapai";
-    gameStore.game.turn = "xiajia";
-    gameStore.game.status = "ready";
-    gameStore.game.dapai = new Pai("s", 5);
     await flushPromises();
-    expect(wrapper.findAll("button").length).toBe(0);
-  });
 
-  it("watch effect", async () => {
-    
+    expect(wrapper.find(".bingpai").findAll("img").length).toBe(11);
+    expect(wrapper.findAll("button").length).toBe(2);
+    expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].classes("hidden")).toBe(true);
+    expect(wrapper.findAll("button")[1].text()).toBe("カン");
+    await wrapper.findAll("button")[1].trigger("click");
+    await flushPromises();
+    expect(wrapper.find(".bingpai").findAll("img").length).toBe(10);
+    expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(1);
   });
 });

@@ -11,5 +11,6 @@ export type PlayerAction =
   | "lizhi"
   | "zimo"
   | "fulou"
+  | "qipai"
 
 export type Feng = "東" | "南" | "西" | "北";

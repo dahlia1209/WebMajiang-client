@@ -11,12 +11,15 @@ import { He } from "@/models/he";
 import { Score } from "@/models/score";
 import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 import { useGameStore } from '@/stores/game'
+import { useWebSocketStore } from '@/stores/websocket'
+import { useScoreStore } from '@/stores/score'
 
 const props = defineProps<{
   board: Board,
 }>()
 const gameStore = useGameStore()
-const client = useWebSocketService(import.meta.env.VITE_WEBSOCKET_ENDPOINT)
+const wsStore = useWebSocketStore();
+const scoreStore = useScoreStore();
 const b = useBoard(props.board)
 onMounted(() => {
   gameStore.game = props.board.gameStatus
@@ -31,12 +34,11 @@ const messageHandler = (msg: any) => {
       case MessageType.Game:
         console.log("clientonmessage",m)
         const gc = m.game
-        const gd = gc.dapai === undefined || gc.dapai === null ? gc.dapai : new Pai(gc.dapai[0] as PaiSuit, Number(gc.dapai[1]))
-        const gz = gc.zimopai === undefined || gc.zimopai === null ? gc.zimopai : new Pai(gc.zimopai[0] as PaiSuit, Number(gc.zimopai[1]))
-        const gfl = gc.canFulouList === undefined||gc.canFulouList === null ? undefined : gc.canFulouList.map(f => Fulou.deserialize(f))
-        const gf = gc.fulou === undefined || gc.fulou === null ? gc.fulou : Fulou.deserialize(gc.fulou)
-        const gq = gc.qipai === undefined||gc.qipai === null ? undefined : gc.qipai.split("+").map(ps => Pai.deseriarize(ps))
-        gameStore.game.update({ action: gc.action, turn: gc.turn, status: gc.status, dapai: gd, zimopai: gz, canFulouList: gfl, fulou: gf, qipai: gq })
+        const gd = gc.dapai== null ? gc.dapai : Pai.deseriarize(gc.dapai)
+        const gz = gc.zimopai == null ? gc.zimopai : new Pai(gc.zimopai[0] as PaiSuit, Number(gc.zimopai[1]))
+        const gf = gc.fulou == null ? gc.fulou : Fulou.deserialize(gc.fulou)
+        const gq = gc.qipai == null ? [] : gc.qipai.split("+").map(ps => Pai.deseriarize(ps))
+        gameStore.game=new GameStatus({ action: gc.action, turn: gc.turn, dapai: gd, zimopai: gz, fulou: gf, qipai: gq })
         break;
       case MessageType.Score:
         gameStore.score.update({
@@ -49,8 +51,6 @@ const messageHandler = (msg: any) => {
           jushu: m.score.jushu ?? undefined,
         })
         break;
-
-
       default:
         break;
     }
@@ -59,28 +59,10 @@ const messageHandler = (msg: any) => {
   }
 }
 
-watch(client.messages.value, () => {
-  const msg = client.messages.value.shift()
+watch(wsStore.client.messages, () => {
+  const msg = wsStore.client.messages.shift()
   messageHandler(msg)
 })
-
-const actionHandler = (payload?: callbackProperty) => {
-  if (payload && payload.action == "dapai" && payload.dapai) {  
-    gameStore.game.dapai = payload.dapai
-  } else if (payload && payload.action == "fulou" && payload.fulou) {
-    gameStore.game.dapai =null
-  }
-  gameStore.game.status = "ready"
-  console.log("clientSendMessage",payload)
-  client.callbackMessage(payload)
-}
-
-
-
-// const update = () => {
-//   console.log(client.messages.value)
-//   client.messages.value.push({ "type": "message", "msg": `Msg No ${client.messages.value.length}` } as SimpleMessage)
-// }
 
 </script>
 
@@ -89,12 +71,18 @@ const actionHandler = (payload?: callbackProperty) => {
     :position="p"
     :class="[{ 'main-he': p == 'main' }, { 'xiajia-he': p == 'xiajia' }, { 'duimian-he': p == 'duimian' }, { 'shangjia-he': p == 'shangjia' }, 'component']" />
   <ShoupaiView v-for="(p, i) in (['main', 'xiajia', 'duimian', 'shangjia'] as Position[])"
-    :shoupai="(b.shoupai[i] as Shoupai)" :position="p" @action="actionHandler"
-    :class="[{ 'main-shoupai': p == 'main' }, { 'xiajia-shoupai': p == 'xiajia' }, { 'duimian-shoupai': p == 'duimian' }, { 'shangjia-shoupai': p == 'shangjia' }, 'component']" />
+    :shoupai="(b.shoupai[i] as Shoupai)" :position="p" 
+    :class="[{ 'main-shoupai': p == 'main' }, { 'xiajia-shoupai': p == 'xiajia' }, { 'duimian-shoupai': p == 'duimian' }, { 'shangjia-shoupai': p == 'shangjia' }, 'component']"/>
   <ScoreView :score="new Score()" class="score component" />
 </template>
 
 <style scoped>
+.shoupai {
+  display: flex;
+  width: auto;
+  zoom: 0.45;
+}
+
 .component {
   position: absolute;
   display: flex;

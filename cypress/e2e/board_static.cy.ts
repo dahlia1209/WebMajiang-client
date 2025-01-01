@@ -75,7 +75,7 @@ describe("Board", () => {
           .join("+");
     const wangpai = Array.from({ length: 14 }, () => popPai());
     const taqipai = Array.from({ length: 13 * 3 }, () => popPai()).join("+"); //他家配牌分
-    console.log("qipaigo pais", pais);
+    // console.log("qipaigo pais", pais);
 
     //配牌
     cy.visit("/", {
@@ -163,15 +163,15 @@ describe("Board", () => {
 
   it("fulou", () => {
     cy.wrap({}).then(() => {
-      console.log(pais);
+      // console.log(pais);
       cy.pause();
     });
     cy.wrap({}).then(() => {
-      console.log(extractPai("z1"));
+      // console.log(extractPai("z1"));
       cy.pause();
     });
     cy.wrap({}).then(() => {
-      console.log(pais);
+      // console.log(pais);
       cy.pause();
     });
   });

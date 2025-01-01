@@ -15,9 +15,10 @@ const gameStore = useGameStore()
 const lizhiIndex = ref(-1)
 
 watch([
-    () => gameStore.doneDapai(props.position),
+    () => gameStore.tajiaDapaiStatus(props.position),
+    // () => gameStore.tajiaDapaiStatus && props.position==gameStore.game.turn,
     () => gameStore.isLizhi(props.position),
-    () => gameStore.doneFulouToMe(props.position)
+    () => gameStore.tajiaFulouToMe(props.position)
 ], ([newa, newb, newc], [olda, oldb, oldc]) => {
     if (newa && !olda) h.value.pai.push(gameStore.game.dapai as Pai)
     if (newb && !oldb) lizhiIndex.value = h.value.pai.length - 1

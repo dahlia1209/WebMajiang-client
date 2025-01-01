@@ -50,10 +50,10 @@ describe('usePai', () => {
     let str
     //serialize
     pai = usePai(new Pai('m',1))
-    str=pai.value.seriarize()
+    str=pai.value.serialize()
     expect(str).toBe("m1f")
     pai = usePai(new Pai('s',5,true))
-    str=pai.value.seriarize()
+    str=pai.value.serialize()
     expect(str).toBe("s5t")
 
     //deserialize

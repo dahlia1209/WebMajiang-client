@@ -41,10 +41,10 @@ describe("useShoupai", () => {
     expect(shoupai.value.bingpai[9]).toStrictEqual(bingpai[9]);
     expect(shoupai.value.fulou.length).toBe(1);
     expect(shoupai.value.fulou[0].type).toBe("peng");
-    expect(shoupai.value.fulou[0].nakipai).toStrictEqual(fulou[0].nakipai);
-    expect(shoupai.value.fulou[0].fuloupais).toStrictEqual([
-      fulou[0].fuloupais[0],
-      fulou[0].fuloupais[1],
+    expect(shoupai.value.fulou[0].fuloupai).toStrictEqual(fulou[0].fuloupai);
+    expect(shoupai.value.fulou[0].menpais).toStrictEqual([
+      fulou[0].menpais[0],
+      fulou[0].menpais[1],
     ]);
     expect(shoupai.value.zimopai).toStrictEqual(zimopai);
   });
@@ -156,17 +156,17 @@ describe("useShoupai", () => {
     //deserialize
     fulou=Fulou.deserialize("angang,null,z1f+z1f+z1f+z1f,null")
     expect(fulou.type).toBe("angang")
-    expect(fulou.nakipai).toBe(null)
-    expect(fulou.fuloupais.length).toBe(4)
-    expect(fulou.fuloupais[0].name()).toBe("z1")
-    expect(fulou.fuloupais[3].name()).toBe("z1")
+    expect(fulou.fuloupai).toBe(null)
+    expect(fulou.menpais.length).toBe(4)
+    expect(fulou.menpais[0].name()).toBe("z1")
+    expect(fulou.menpais[3].name()).toBe("z1")
     expect(fulou.position).toBe(null)
     fulou=Fulou.deserialize("minggang,p5t,p5f+p5f+p5f,duimian")
     expect(fulou.type).toBe("minggang")
-    expect(fulou.nakipai?.name()).toBe("p0")
-    expect(fulou.fuloupais.length).toBe(3)
-    expect(fulou.fuloupais[0].name()).toBe("p5")
-    expect(fulou.fuloupais[2].name()).toBe("p5")
+    expect(fulou.fuloupai?.name()).toBe("p0")
+    expect(fulou.menpais.length).toBe(3)
+    expect(fulou.menpais[0].name()).toBe("p5")
+    expect(fulou.menpais[2].name()).toBe("p5")
     expect(fulou.position).toBe("duimian")
 
     //exception

@@ -58,7 +58,7 @@ export class Pai {
     return this.suit.toString() + numStr;
   }
 
-  seriarize() {
+  serialize() {
     const a = this.isRed ? "t" : "f";
     const s = this.suit + String(this.num) + a;
     return s;

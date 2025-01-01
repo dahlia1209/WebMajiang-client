@@ -19,7 +19,7 @@ const myXiajia=(pos :Position)=>{
 }
 
 const f = useFulou(props.fulou)
-const pais=f.value.fuloupais
+const pais=f.value.menpais
 const key = (function () {
     if (props.position==f.value.position ) {
         return -1
@@ -33,7 +33,7 @@ const key = (function () {
         return -1
     }
 })();
-if (f.value.nakipai) pais.splice(key,0,f.value.nakipai as Pai)
+if (f.value.fuloupai) pais.splice(key,0,f.value.fuloupai as Pai)
 
 </script>
 

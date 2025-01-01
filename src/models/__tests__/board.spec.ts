@@ -84,10 +84,8 @@ describe("userBoard", () => {
         new GameStatus({
           action:"fulou",
           turn:"duimian",
-          status:"ready",
           dapai:new Pai("m", 1),
           zimopai:new Pai("m", 2),
-          canFulouList:[new Fulou("chi")],
           fulou:new Fulou("peng")
         }),
         new Score(),
@@ -157,50 +155,42 @@ describe("userBoard", () => {
     board.value.gameStatus.update({})
     expect(board.value.gameStatus.action).toBe(null)
     expect(board.value.gameStatus.turn).toBe(null)
-    expect(board.value.gameStatus.status).toBe(null)
     expect(board.value.gameStatus.dapai).toBe(null)
     expect(board.value.gameStatus.zimopai).toBe(null)
-    expect(board.value.gameStatus.canFulouList).toStrictEqual([])
     expect(board.value.gameStatus.fulou).toBe(null)
     expect(board.value.gameStatus.qipai).toStrictEqual([])
 
     board.value.gameStatus= new GameStatus({
       action:"dapai",
       turn:"duimian",
-      status:"ready",
       dapai:new Pai("m",1),
       zimopai:new Pai("m",2),
-      canFulouList:[new Fulou("chi",new Pai("p",1),[new Pai("p",2),new Pai("p",3)])],
       fulou:new Fulou("peng"),
       qipai:[new Pai("m",3)]
     })
     board.value.gameStatus.update({})
     expect(board.value.gameStatus.action).toBe("dapai")
     expect(board.value.gameStatus.turn).toBe("duimian")
-    expect(board.value.gameStatus.status).toBe("ready")
+    // expect(board.value.gameStatus.status).toBe("ready")
     expect(board.value.gameStatus.dapai?.name()).toBe("m1")
     expect(board.value.gameStatus.zimopai?.name()).toBe("m2")
-    expect(board.value.gameStatus.canFulouList.length).toBe(1)
-    expect(board.value.gameStatus.canFulouList[0].type).toBe("chi")
     expect(board.value.gameStatus.fulou?.type).toBe("peng")
     expect(board.value.gameStatus.qipai[0]?.name()).toBe("m3")
 
     board.value.gameStatus.update({
       action:null,
       turn:null,
-      status:null,
+      // status:null,
       dapai:null,
       zimopai:null,
-      canFulouList:[],
       fulou:null,
       qipai:[]
     })
     expect(board.value.gameStatus.action).toBe(null)
     expect(board.value.gameStatus.turn).toBe(null)
-    expect(board.value.gameStatus.status).toBe(null)
+    // expect(board.value.gameStatus.status).toBe(null)
     expect(board.value.gameStatus.dapai).toBe(null)
     expect(board.value.gameStatus.zimopai).toBe(null)
-    expect(board.value.gameStatus.canFulouList).toStrictEqual([])
     expect(board.value.gameStatus.fulou).toBe(null)
     expect(board.value.gameStatus.qipai).toStrictEqual([])
   })

@@ -35,14 +35,12 @@ export interface ScoreMessage extends BaseMessage {
 export interface GameMessage extends BaseMessage {
   type: MessageType.Game;
   game: {
-    action?: PlayerAction | null;
-    turn?: Position | null;
-    status?: PlayerStatus | null;
-    dapai?: string | null;
-    zimopai?: string | null;
-    canFulouList?: string[];
-    fulou?: string | null;
-    qipai?: string;
+    action: PlayerAction | null;
+    turn: Position | null;
+    dapai: string | null;
+    zimopai: string | null;
+    fulou: string | null;
+    qipai: string|null;
   };
 }
 
@@ -54,7 +52,9 @@ interface BaseMessage {
 export interface callbackProperty{
   action?: PlayerAction, 
   dapai?: Pai, 
-  fulou?: Fulou
+  dapaiIdx?: number, 
+  fulou?: Fulou,
+
 }
 
 export const useWebSocketService = (connectionUrl: string) => {
@@ -144,15 +144,43 @@ export const useWebSocketService = (connectionUrl: string) => {
     sendMessage(format);
   };
 
+  const initGameMessage=( type: MessageType,game?: {
+      action?: PlayerAction,
+      turn?: Position ,
+      status?: PlayerStatus ,
+      dapai?: string ,
+      zimopai?: string ,
+      fulou?: string ,
+      qipai?: string
+    })=>{
+      const gameMessage={
+          type:type,
+          game:{
+            action:game && game.action ? game.action:null,
+            turn: game && game.turn ? game.turn:null,
+          status: game && game.status ? game.status:null,
+          dapai: game && game.dapai ? game.dapai:null,
+          zimopai: game && game.zimopai ? game.zimopai:null,
+          fulou: game && game.fulou ? game.fulou:null,
+          qipai: game && game.qipai ? game.qipai:null,
+          }
+        } as GameMessage
+        return gameMessage
+    }
+
   const callbackMessage = (cb?:callbackProperty) => {
-    const format: GameMessage = {
-      type: MessageType.Game,
-      game: {
-        action:cb && cb.action ? cb.action:null,
-        fulou:cb && cb.fulou ? cb.fulou.serialize():null,
-        dapai:cb && cb.dapai ? cb.dapai.seriarize():null,
-      },
-    };
+    const action=cb && cb.action ? cb.action:undefined
+    const fulou=cb && cb.fulou ? cb.fulou.serialize():undefined
+    const dapai=cb && cb.dapai && cb.dapaiIdx ? [cb.dapai.serialize(),cb.dapaiIdx.toString()].join(","):undefined
+    const format=initGameMessage(MessageType.Game,{action,fulou,dapai})
+    // const format: GameMessage = {
+    //   type: MessageType.Game,
+    //   game: {
+        // action:cb && cb.action ? cb.action:null,
+        // fulou:cb && cb.fulou ? cb.fulou.serialize():null,
+        // dapai:cb && cb.dapai ? cb.dapai.seriarize():null,
+    //   },
+    // };
     sendMessage(format);
   };
 

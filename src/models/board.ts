@@ -8,10 +8,10 @@ import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "
 export interface GameStatusProperty {
   action?: PlayerAction | null;
   turn?: Position | null;
-  status?: PlayerStatus | null;
+  // status?: PlayerStatus | null;
   dapai?: Pai | null;
   zimopai?: Pai | null;
-  canFulouList?: Fulou[];
+  // fulouCandidates?: Fulou[];
   fulou?: Fulou | null;
   qipai?: Pai[];
 }
@@ -19,20 +19,16 @@ export interface GameStatusProperty {
 export class GameStatus {
   action;
   turn;
-  status;
   dapai;
   zimopai;
-  canFulouList;
   fulou;
   qipai;
 
   constructor(option?: GameStatusProperty) {
     this.action = option && option.action ? option.action : null;
     this.turn = option && option.turn ? option.turn : null;
-    this.status = option && option.status ? option.status : null;
     this.dapai = option && option.dapai ? option.dapai : null;
     this.zimopai = option && option.zimopai ? option.zimopai : null;
-    this.canFulouList = option && option.canFulouList ? option.canFulouList : [];
     this.fulou = option && option.fulou ? option.fulou : null;
     this.qipai = option && option.qipai ? option.qipai : [];
   }
@@ -40,13 +36,41 @@ export class GameStatus {
   update(option: GameStatusProperty) {
     this.action = option.action === undefined ? this.action : option.action;
     this.turn = option.turn === undefined ? this.turn : option.turn;
-    this.status = option.status === undefined ? this.status : option.status;
     this.dapai = option.dapai === undefined ? this.dapai : option.dapai;
     this.zimopai = option.zimopai === undefined ? this.zimopai : option.zimopai;
-    this.canFulouList = option.canFulouList === undefined ? this.canFulouList : option.canFulouList;
     this.fulou = option.fulou === undefined ? this.fulou : option.fulou;
     this.qipai = option.qipai === undefined ? this.qipai : option.qipai;
   }
+
+  serialize(){
+    const as=this.action ==null ? "null": this.action.toString()
+    const ts=this.turn ==null ? "null": this.turn.toString()
+    const ds=this.dapai ==null ? "null": this.dapai.serialize()
+    const zs=this.zimopai ==null ? "null": this.zimopai.serialize()
+    const fs=this.fulou ==null ? "null": this.fulou.serialize()
+    const qs=this.qipai.length==0 ? "null": this.qipai.map(x=>x.serialize()).join("+")
+
+    return [as,ts,ds,zs,fs,qs].join(",")
+  }
+
+  static deserialize (str:string){
+    const strs=str.split(",")
+    if (strs.length != 6) {
+      throw new Error(`与えられた文字列に誤りがあります。分割した要素の数が正しくありません。str:${str},splitStrings:${strs}`)
+    }
+    const action=strs[0]=="null"?null:strs[0] as PlayerAction
+    const turn=strs[1]=="null"?null:strs[1] as Position
+    const dapai=strs[2]=="null"?null:Pai.deseriarize(strs[2])
+    const zimopai=strs[3]=="null"?null:Pai.deseriarize(strs[3]) 
+    const fulou=strs[4]=="null"?null:Fulou.deserialize(strs[4]) 
+    const qipai=strs[5]=="null"?[]:strs[5].split("+").map(x=>Pai.deseriarize(x))
+
+    return new GameStatus({action,turn,dapai,zimopai,fulou,qipai})
+  }
+
+  
+
+
 }
 
 export class Board {
