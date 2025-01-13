@@ -4,7 +4,7 @@ import { Score, useScore } from "@/models/score";
 import { type PlayerAction, type Position } from "@/models/type";
 import PaiView from '../components/Pai.vue'
 import { useGameStore } from '@/stores/game'
-import { watchEffect, ref, onMounted } from 'vue';
+import { watchEffect, ref, onMounted,watch } from 'vue';
 
 const props = defineProps<{
     score: Score,
@@ -24,6 +24,14 @@ watchEffect(()=>{
     s.value.paishu=gameStore.score.paishu
     s.value.defen=gameStore.score.defen
     s.value.menfeng=gameStore.score.menfeng
+})
+
+watch([
+    () => gameStore.getAction
+], (
+  [ currentAction],[ previousAction]
+) => {
+  if (currentAction=="zimo") s.value.paishu--
 })
 
 </script>

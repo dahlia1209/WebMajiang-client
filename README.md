@@ -53,3 +53,26 @@ But it's still recommended to test the production build with `test:e2e` before d
 npm run build
 npm run test:e2e
 ```
+
+### デプロイコマンド
+
+```sh
+#リソース作成・デプロイ
+$yyyyMMddHHmm=$(az group list --query "[? contains(name,'webmajiang')].tags.yyyyMMddHHmm" -o tsv)
+$rg=$(az group list --query "[? contains(name,'webmajiang')].name" -o tsv)
+if ([System.String]::IsNullOrEmpty($rg)){
+    $yyyyMMddHHmm=$(Get-Date -Format "yyyyMMddHHmm")
+    $rg=$(-Join ("webmajiang-", $yyyyMMddHHmm ,"-rg"))
+    }
+$location="eastus2"
+$swa=$(-Join ("webmajiang-", $yyyyMMddHHmm ,"-swa"))
+
+az group create --name $rg --location $location --tags "yyyyMMddHHmm=$yyyyMMddHHmm"
+az staticwebapp create -n $swa -g $rg --query "defaultHostname"
+npx swa init --yes
+npx swa build
+npx swa login --resource-group $rg --app-name $swa
+npx swa deploy --env production -n $swa
+
+
+```

@@ -1,6 +1,6 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "@/models/type";
-import { type Pai } from "@/models/pai";
+import { Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
 import { GameStatus } from "@/models/board";
 
@@ -29,6 +29,7 @@ export interface ScoreMessage extends BaseMessage {
     changbang?: number;
     defen?: number[];
     baopai?: string[];
+    paishu?: number;
   };
 }
 
@@ -41,7 +42,22 @@ export interface GameMessage extends BaseMessage {
     zimopai: string | null;
     fulou: string | null;
     qipai: string|null;
+    fulouCandidates: string|null;
+    lizhiPai: string|null;
   };
+}
+
+export const validateDapai=(dapai:string)=>{
+  const splitDapaiStrings=dapai.split(",")
+  try {
+    if (splitDapaiStrings.length!=2 || typeof splitDapaiStrings[0] != "string" || typeof Number(splitDapaiStrings[1]) != "number"  ){
+      throw new Error(`メッセージが正しくありません.[打牌,牌番号]形式にしてください. dapai:${dapai}`)
+    }
+    return {dapai:Pai.deserialize(splitDapaiStrings[0]),dapaiIdx:Number(splitDapaiStrings[1])}
+   
+  } catch (error) {
+    return null
+  }
 }
 
 export type WebSocketMessage = SimpleMessage | ScoreMessage | GameMessage;
@@ -63,6 +79,7 @@ export const useWebSocketService = (connectionUrl: string) => {
   const messages = ref<WebSocketMessage[]>([]);
 
   const open = () => {
+    if (socket.value != null &&  socket.value.readyState!=3) return
     socket.value = new WebSocket(url);
     socket.value.onopen = handleonopen;
     socket.value.onmessage = handleWebSocketMessage; //イベントリスナーの登録
@@ -151,7 +168,9 @@ export const useWebSocketService = (connectionUrl: string) => {
       dapai?: string ,
       zimopai?: string ,
       fulou?: string ,
-      qipai?: string
+      qipai?: string,
+      fulouCandidates?:string,
+      lizhiPai?:string
     })=>{
       const gameMessage={
           type:type,
@@ -163,6 +182,8 @@ export const useWebSocketService = (connectionUrl: string) => {
           zimopai: game && game.zimopai ? game.zimopai:null,
           fulou: game && game.fulou ? game.fulou:null,
           qipai: game && game.qipai ? game.qipai:null,
+          fulouCandidates:game && game.fulouCandidates?game.fulouCandidates:null,
+          lizhiPai:game && game.lizhiPai?game.lizhiPai:null,
           }
         } as GameMessage
         return gameMessage
@@ -171,7 +192,7 @@ export const useWebSocketService = (connectionUrl: string) => {
   const callbackMessage = (cb?:callbackProperty) => {
     const action=cb && cb.action ? cb.action:undefined
     const fulou=cb && cb.fulou ? cb.fulou.serialize():undefined
-    const dapai=cb && cb.dapai && cb.dapaiIdx ? [cb.dapai.serialize(),cb.dapaiIdx.toString()].join(","):undefined
+    const dapai=cb && cb.dapai && cb.dapaiIdx!=null ? [cb.dapai.serialize(),cb.dapaiIdx.toString()].join(","):undefined
     const format=initGameMessage(MessageType.Game,{action,fulou,dapai})
     // const format: GameMessage = {
     //   type: MessageType.Game,

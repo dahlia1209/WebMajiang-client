@@ -10,27 +10,36 @@ export interface GameStatusProperty {
   turn?: Position | null;
   // status?: PlayerStatus | null;
   dapai?: Pai | null;
+  dapaiIdx?: number | null;
   zimopai?: Pai | null;
   // fulouCandidates?: Fulou[];
   fulou?: Fulou | null;
   qipai?: Pai[];
+  fulouCandidates?: Fulou[];
+  lizhiPai?: Pai[];
 }
 
 export class GameStatus {
   action;
   turn;
   dapai;
+  dapaiIdx;
   zimopai;
   fulou;
   qipai;
+  fulouCandidates;
+  lizhiPai;
 
   constructor(option?: GameStatusProperty) {
     this.action = option && option.action ? option.action : null;
     this.turn = option && option.turn ? option.turn : null;
     this.dapai = option && option.dapai ? option.dapai : null;
+    this.dapaiIdx = option && option.dapaiIdx!=null ? option.dapaiIdx : null;
     this.zimopai = option && option.zimopai ? option.zimopai : null;
     this.fulou = option && option.fulou ? option.fulou : null;
-    this.qipai = option && option.qipai ? option.qipai : [];
+    this.qipai = option && option.qipai  ? option.qipai : [];
+    this.fulouCandidates = option && option.fulouCandidates  ? option.fulouCandidates : [];
+    this.lizhiPai = option && option.lizhiPai  ? option.lizhiPai : [];
   }
 
   update(option: GameStatusProperty) {
@@ -60,10 +69,10 @@ export class GameStatus {
     }
     const action=strs[0]=="null"?null:strs[0] as PlayerAction
     const turn=strs[1]=="null"?null:strs[1] as Position
-    const dapai=strs[2]=="null"?null:Pai.deseriarize(strs[2])
-    const zimopai=strs[3]=="null"?null:Pai.deseriarize(strs[3]) 
+    const dapai=strs[2]=="null"?null:Pai.deserialize(strs[2])
+    const zimopai=strs[3]=="null"?null:Pai.deserialize(strs[3]) 
     const fulou=strs[4]=="null"?null:Fulou.deserialize(strs[4]) 
-    const qipai=strs[5]=="null"?[]:strs[5].split("+").map(x=>Pai.deseriarize(x))
+    const qipai=strs[5]=="null"?[]:strs[5].split("+").map(x=>Pai.deserialize(x))
 
     return new GameStatus({action,turn,dapai,zimopai,fulou,qipai})
   }

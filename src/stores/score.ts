@@ -9,7 +9,7 @@ import { Board, GameStatus } from "@/models/board";
 import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 
 export const useScoreStore = defineStore("score", {
-  state:()=> (new Score()),
+  state:()=>new Score(),
   getters: {
     
   },

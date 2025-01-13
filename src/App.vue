@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import { Score } from "@/models/score";
 import { usePai, Pai } from '@/models/pai'
-import { Board, Game } from '@/models/board'
+import { Board } from '@/models/board'
 import { Settings } from '@/models/settings'
 import BoardView from './components/Board.vue'
 import TitleView from './components/Title.vue'

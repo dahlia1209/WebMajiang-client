@@ -58,21 +58,21 @@ describe('usePai', () => {
 
     //deserialize
     str="m1f"
-    pai=Pai.deseriarize(str)
+    pai=Pai.deserialize(str)
     expect(pai.suit).toBe("m")
     expect(pai.num).toBe(1)
     expect(pai.isRed).toBe(false)
     str="s5t"
-    pai=Pai.deseriarize(str)
+    pai=Pai.deserialize(str)
     expect(pai.suit).toBe("s")
     expect(pai.num).toBe(5)
     expect(pai.isRed).toBe(true)
 
 
     //exception
-    expect(()=>Pai.deseriarize("m")).toThrowError()
-    expect(()=>Pai.deseriarize("m1tt")).toThrowError()
-    expect(()=>Pai.deseriarize("abc")).toThrowError()
+    expect(()=>Pai.deserialize("m")).toThrowError()
+    expect(()=>Pai.deserialize("m1tt")).toThrowError()
+    expect(()=>Pai.deserialize("abc")).toThrowError()
     
   })
 })

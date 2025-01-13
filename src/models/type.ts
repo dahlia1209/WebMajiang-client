@@ -12,5 +12,9 @@ export type PlayerAction =
   | "zimo"
   | "fulou"
   | "qipai"
+  |"pingju"
+  |"jieju"
 
 export type Feng = "東" | "南" | "西" | "北";
+
+export type HandlerType = 'mainSelfTurn' | 'mainOtherTurn' | 'tajiaSelfTurn' | 'tajiaOtherTurn';

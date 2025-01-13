@@ -1,27 +1,29 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watchEffect, watchPostEffect, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watchEffect, watchPostEffect, watch, computed } from 'vue'
 import ShoupaiView from './Shoupai.vue'
 import HeView from './He.vue'
 import ScoreView from './Score.vue'
+import HuleView from './Hule.vue'
 import { usePai, Pai } from '@/models/pai'
 import { type PaiSuit, type PlayerAction, type Position } from "@/models/type"
 import { Shoupai, createPais, Fulou } from "@/models/shoupai";
 import { Board, GameStatus, useBoard } from "@/models/board";
 import { He } from "@/models/he";
 import { Score } from "@/models/score";
-import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
+import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty,validateDapai } from "@/services/webSocketService";
 import { useGameStore } from '@/stores/game'
 import { useWebSocketStore } from '@/stores/websocket'
-import { useScoreStore } from '@/stores/score'
+// import { useScoreStore } from '@/stores/score'
 
 const props = defineProps<{
   board: Board,
 }>()
 const gameStore = useGameStore()
 const wsStore = useWebSocketStore();
-const scoreStore = useScoreStore();
+// const scoreStore = useScoreStore();
 const b = useBoard(props.board)
 onMounted(() => {
+  wsStore.client.open()
   gameStore.game = props.board.gameStatus
   gameStore.score = props.board.score
 })
@@ -32,23 +34,30 @@ const messageHandler = (msg: any) => {
     const m = msg as WebSocketMessage
     switch (m.type) {
       case MessageType.Game:
-        console.log("clientonmessage",m)
+        console.log("clientonmessage,game",m)
         const gc = m.game
-        const gd = gc.dapai== null ? gc.dapai : Pai.deseriarize(gc.dapai)
+        const gdv=gc.dapai== null ? gc.dapai : validateDapai(gc.dapai) 
+        const gd = gdv== null ?null : gdv.dapai 
+        const gdi = gdv== null ?null : gdv.dapaiIdx
         const gz = gc.zimopai == null ? gc.zimopai : new Pai(gc.zimopai[0] as PaiSuit, Number(gc.zimopai[1]))
         const gf = gc.fulou == null ? gc.fulou : Fulou.deserialize(gc.fulou)
-        const gq = gc.qipai == null ? [] : gc.qipai.split("+").map(ps => Pai.deseriarize(ps))
-        gameStore.game=new GameStatus({ action: gc.action, turn: gc.turn, dapai: gd, zimopai: gz, fulou: gf, qipai: gq })
+        const gq = gc.qipai == null ? [] : gc.qipai.split("+").map(x => Pai.deserialize(x))
+        const gfc = gc.fulouCandidates == null ? [] : gc.fulouCandidates.split("|").map(x => Fulou.deserialize(x))
+        const glp = gc.lizhiPai == null ? [] : gc.lizhiPai.split("+").map(x => Pai.deserialize(x))
+        
+        gameStore.game=new GameStatus({ action: gc.action, turn: gc.turn, dapai: gd, dapaiIdx:gdi,zimopai: gz, fulou: gf, qipai: gq,fulouCandidates:gfc,lizhiPai:glp })
         break;
       case MessageType.Score:
+      console.log("clientonmessage,score",m)
         gameStore.score.update({
-          baopai: m.score.baopai ? m.score.baopai.map(ps => Pai.deseriarize(ps)) : undefined,
+          baopai: m.score.baopai ? m.score.baopai.map(ps => Pai.deserialize(ps)) : undefined,
           zhuangfeng: m.score.zhuangfeng ?? undefined,
           menfeng: m.score.menfeng ?? undefined,
           changbang: m.score.changbang ?? undefined,
           defen: m.score.defen ?? undefined,
           jicun: m.score.jicun ?? undefined,
           jushu: m.score.jushu ?? undefined,
+          paishu: m.score.paishu ?? undefined,
         })
         break;
       default:
@@ -59,9 +68,29 @@ const messageHandler = (msg: any) => {
   }
 }
 
-watch(wsStore.client.messages, () => {
+const isHule=computed(()=>gameStore.getAction=="pingju" || gameStore.getAction=="hule")
+
+watch([
+  wsStore.client.messages,
+  () => gameStore.getAction
+], (
+  [newa,currentStatus],
+  [olda,previousStatus]
+) => {
+  //メッセージの受信
   const msg = wsStore.client.messages.shift()
   messageHandler(msg)
+
+  //流局
+  if (currentStatus=="pingju") {
+    // wsStore.client.callbackMessage({ action: "pingju" })
+  }
+  //終局
+  else if (currentStatus=="jieju") {
+    gameStore.settings.mode=0
+  }
+
+
 })
 
 </script>
@@ -74,6 +103,7 @@ watch(wsStore.client.messages, () => {
     :shoupai="(b.shoupai[i] as Shoupai)" :position="p" 
     :class="[{ 'main-shoupai': p == 'main' }, { 'xiajia-shoupai': p == 'xiajia' }, { 'duimian-shoupai': p == 'duimian' }, { 'shangjia-shoupai': p == 'shangjia' }, 'component']"/>
   <ScoreView :score="new Score()" class="score component" />
+  <HuleView v-if="isHule" />
 </template>
 
 <style scoped>

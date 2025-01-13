@@ -64,7 +64,7 @@ export class Pai {
     return s;
   }
 
-  static deseriarize(str: string) {
+  static deserialize(str: string) {
     if (str.length < 2 || str.length > 3) {
       throw new Error("文字数は2~3文字にしてください");
     }

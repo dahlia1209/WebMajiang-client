@@ -33,8 +33,8 @@ export class Fulou {
     const ss = str.split(",");
     if (ss.length != 4) throw new Error(`指定した文字列に誤りがあります:${str}`);
     const t = ss[0] as FulouType;
-    const n = ss[1] == "null" ? null : Pai.deseriarize(ss[1]);
-    const f = ss[2] == "null" ? [] : ss[2].split("+").map((fs) => Pai.deseriarize(fs));
+    const n = ss[1] == "null" ? null : Pai.deserialize(ss[1]);
+    const f = ss[2] == "null" ? [] : ss[2].split("+").map((fs) => Pai.deserialize(fs));
     const p = ss[3] == "null" ? null : (ss[3] as Position);
     return new Fulou(t, n, f, p);
   }
@@ -60,6 +60,28 @@ export class Shoupai {
     this.zimopai = zimopai;
     this.huleCandidates = huleCandidates;
     this.fulouCandidates = fulouCandidates;
+  }
+
+  doLipai(){
+    const sortedPai=[...this.bingpai,...(this.zimopai ==null?[]:[this.zimopai])]
+    sortedPai.sort((a,b)=>a.serialize().localeCompare(b.serialize()))
+
+    this.zimopai=null
+    this.bingpai=sortedPai
+  }
+
+  doDapai(dapai:Pai,dapaiIdx:number,validation:boolean){
+    if (validation)this.checkDapai(dapai,dapaiIdx);
+
+    if (0<=dapaiIdx && dapaiIdx<this.bingpai.length){
+      this.bingpai=this.bingpai.filter((x,i)=>i!=dapaiIdx)
+    }else if(dapaiIdx==99){
+      this.zimopai=null
+    }
+  }
+
+  private checkDapai(dapai:Pai,dapaiIdx:number){
+
   }
 
   addPai(pai: Pai): void {
@@ -128,15 +150,37 @@ export class Shoupai {
     this.fulou.unshift(fulou);
   }
 
+
   doFulou(fulou: Fulou) {
-    if (fulou.type == "chi" || fulou.type == "minggang" || fulou.type == "peng" || fulou.type == "angang") {
+    if (fulou.type == "chi" || fulou.type == "minggang" || fulou.type == "peng" ) {
       fulou.menpais.forEach((p) => {
-        const idx = this.bingpai.findIndex((bp) => p.equals(bp));
-        if (idx < 0) throw Error(`${fulou.type}ができません。次の牌がありません:${p}`);
+        const idx = this.bingpai.findIndex((bp) => p.serialize().slice(0.2)==bp.serialize().slice(0.2));
+        if (idx < 0) throw Error(`${fulou.type}ができません。次の牌がありません:${p.serialize()}`);
         this.removPaiFromBingpai(idx);
       });
       this.addFulou(fulou);
-    } else if (fulou.type == "jiagang") {
+    } else if (fulou.type == "angang") {
+      let angangPai:Pai[]=[]
+      let bingpai:Pai[]=[];
+
+      [...this.bingpai , ...(this.zimopai==null ? [] :[this.zimopai])].forEach(p => {
+        if (p.serialize().slice(0,2)==fulou.menpais[0].serialize().slice(0,2)) {
+          angangPai.push(p)
+        }else {
+            bingpai.push(p)
+          }
+      });
+      if (angangPai.length!=4){
+        throw new Error(`指定された暗槓はできません.暗槓:${fulou.serialize()},手牌:${this.bingpai.map(x=>x.serialize()).join("+")}`)
+      }
+      fulou.menpais=angangPai
+      this.addFulou(fulou);
+      this.bingpai=bingpai
+      this.zimopai=null
+      // console.log("bingpai,angangPai",bingpai,angangPai)
+
+
+    }else if (fulou.type == "jiagang") {
       const matchedFulouIndex = this.fulou.findIndex(
         (f) => f.type == "peng" && f.fuloupai && fulou.fuloupai && f.fuloupai.serialize()==fulou.fuloupai.serialize()
       );
@@ -166,27 +210,25 @@ export class Shoupai {
   }
 
   getCandidatesbyType(types:FulouType[],fuloupai?:Pai|null){
-    let fileteredFulouCandidates= this.fulouCandidates.filter(x=>types.includes(x.type))
-    if (fuloupai!=null){
-      fileteredFulouCandidates= fileteredFulouCandidates.filter(x=>["angang","jiagang"].includes(x.type) || x.fuloupai!.serialize().slice(0,1)==fuloupai.serialize().slice(0,1))
+    let fileteredFulouCandidates= this.fulouCandidates.filter(
+      x=>types.includes(x.type) && 
+      fuloupai?.serialize().slice(0,2)==x.fuloupai?.serialize().slice(0,2)
+    )
+    if (fuloupai==null){
+      fileteredFulouCandidates= fileteredFulouCandidates.filter(
+        x=>["angang","jiagang"].includes(x.type) 
+      )
     }
     return fileteredFulouCandidates
-    // const bingpai=[...this.bingpai,...(this.zimopai==null?[]:[this.zimopai])]
-    // let fulouCandidateswithRed: Fulou[]=[]
-    // fileteredFulouCandidates.forEach(f => {
-    //   if (f.type=="jiagang") return
-    //   if (bingpai.filter(x=>x.seriarize()===f.menpais[0].seriarize().slice(0,1)+"t")){
-    //     fulouCandidateswithRed.push()
-    //   }
-    //   if (f.type=="chi"){
-    //     f.menpais.forEach(p=>{
-    //       bingpai.filter(x=>x.seriarize()===p.seriarize().slice(0,1)+"t")
-    //     })
-    //   }else if (["angang","peng","minggang"].includes(f.type)){
+  }
 
-    //   }
-    // });
-    // return fileteredFulouCandidates
+  reset(){
+    const shoupai= new Shoupai()
+    Array(13).map(_=>this.bingpai.push(Pai.deserialize("b0")))
+    this.fulou=shoupai.fulou
+    this.zimopai=shoupai.zimopai
+    this.huleCandidates=shoupai.huleCandidates
+    this.fulouCandidates=shoupai.fulouCandidates
   }
 
 

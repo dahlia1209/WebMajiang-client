@@ -63,7 +63,6 @@ describe("useWebSocketService", () => {
     expect(mbr.type).toBe(MessageType.Game);
     expect(mbr.game.action).toBe("dapai");
     expect(mbr.game.turn).toBe("main");
-    expect(mbr.game.status).toBe("ready");
     expect(mbr.game.dapai).toStrictEqual("m1");
 
     const mc = new MessageEvent("message", {

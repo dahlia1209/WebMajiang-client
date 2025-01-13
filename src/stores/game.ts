@@ -1,7 +1,7 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "@/models/type";
-import { type Pai } from "@/models/pai";
+import { Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
 import { Settings } from "@/models/settings";
 import { Score } from "@/models/score";
@@ -15,54 +15,50 @@ export const useGameStore = defineStore("game", {
     settings: new Settings(),
   }),
   getters: {
-    getStatus: (state) => {
-      const a={action:"fulou"} as {action:PlayerAction}
-      return (
-        state.game.action == "zimo" && 
-        state.game.turn == "main" &&
-        state.game.zimopai !=null
-      );
-    },
     mainZimoStatus: (state) => {
       return (
         state.game.action == "zimo" && 
         state.game.turn == "main" &&
         state.game.zimopai !=null
-        // state.game.status == "thinking"
       );
     },
-    mainFulouStatus: (state) => {
-      return (
-        state.game.action == "fulou" && 
-        state.game.turn == "main" 
-        // state.game.status == "thinking"
-      );
+    getDapai:(state)=>{
+      return state.game.dapai ==null ? null : Pai.deserialize(state.game.dapai.serialize())
     },
-    mainDapaiStatus: (state) => {
-      return (
-        state.game.action == "dapai" && 
-        state.game.turn == "main" &&
-        state.game.dapai != null
-        // state.game.status == "thinking"
-      );
+    getZimopai:(state)=>{
+      return state.game.zimopai ==null ? null : Pai.deserialize(state.game.zimopai.serialize())
     },
-    kaiju: (state) => {
-      return state.game.action == "kaiju" && state.game.qipai.length > 0;
+    getFulou:(state)=>{
+      return state.game.fulou ==null ? null : Fulou.deserialize(state.game.fulou.serialize())
     },
-    qipai: (state) => {
-      return state.game.action == "qipai" && state.game.qipai.length > 0;
+    getQipai:(state)=>{
+      return state.game.qipai.length>0 ? state.game.qipai.map(x=>Pai.deserialize(x.serialize())):[]
+    },
+    getDapaiIdx:(state)=>{
+      return state.game.dapaiIdx
+    },
+    getAction:(state)=>{
+      return state.game.action
+    },
+    getTurn:(state)=>{
+      return state.game.turn
+    },
+    getFulouCandidates:(state)=>{
+      return state.game.fulouCandidates.length>0 ? state.game.fulouCandidates.map(x=>Fulou.deserialize(x.serialize())):[]
+    },
+    getScore:(state)=>{
+      return new Score({baopai:state.score.baopai as Pai[]})
     },
   },
   actions: {
-    zimoStatus (position?: Position) {
+    zimoStatusa (position?: Position) {
       return (
         this.game.action == "zimo" && 
         this.game.zimopai !=null &&
         (this.game.turn == position || position==null)
-        // state.game.status == "thinking"
       );
     },
-    fulouStatus (position?: Position) {
+    fulouStatusa (position?: Position) {
       return (
         this.game.action == "fulou" && 
         this.game.fulou !=null &&
@@ -88,7 +84,7 @@ export const useGameStore = defineStore("game", {
     tajiaDapaiStatus(position?: Position) {
       return (
         (this.game.action == "dapai" || this.game.action == "lizhi") &&
-        this.game.dapai != null &&
+        this.game.dapai != null && this.game.dapaiIdx!=null &&
         (this.game.turn == position || position==null)
       );
     },
@@ -123,5 +119,6 @@ export const useGameStore = defineStore("game", {
         // this.game.status == "ready" && 
         position) ? this.game.turn == position : true;
     },
+
   },
 });
