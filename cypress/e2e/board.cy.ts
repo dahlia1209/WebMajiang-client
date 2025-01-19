@@ -1,94 +1,177 @@
-interface gameMessage {
+import { Server, WebSocket,type Client  } from "mock-socket";
+import { server } from "typescript";
+
+
+class GameMessage {
   type: string;
-  game: { action: string | null; fulou: string | null; dapai: string | null };
-}
-
-describe("Board", () => {
-  /*Param*/
-  const isAutoDapai: boolean = true;
-  const initQipai: string[] | null = ["m1", "m1", "m2", "m2", "m3", "m3", "m4", "m4", "m5", "m5", "m6", "m6", "m7"];
-  // prettier-ignore
-  const initCanFulouList: string[] | null = [
-    // "chi,m3,m1+m2,null","chi,m2,m1+m3,null","chi,m1,m2+m3,null","chi,m4,m2+m3,null","chi,m3,m2+m5,null","chi,m2,m3+m4,null",
-    // "chi,m5,m3+m4,null","chi,m4,m3+m5,null","chi,m3,m4+m5,null","chi,m6,m4+m5,null","chi,m5,m4+m6,null","chi,m4,m5+m6,null","chi,m7,m5+m6,null",
-    // "chi,m6,m5+m7,null","chi,m5,m6+m7,null","chi,m8,m6+m7,null","chi,m7,m6+m8,null","chi,m6,m7+m8,null","chi,m9,m7+m8,null","chi,m8,m7+m9,null",
-    // "chi,m9,m7+m8,null","peng,m1,m1+m1,null","peng,m9,m9+m9,null","minggang,m1,m1+m1+m1,null","minggang,m9,m9+m9+m9,null",
-    // "peng,m1,m1+m1,null","peng,m2,m2+m2,null","peng,m3,m3+m3,null","peng,m4,m4+m4,null","peng,m5,m5+m5,null","peng,m6,m6+m6,null",
-  ];
-  const isMockServer = false;
-  /*Param*/
-  let mockSocket: WebSocket | null = null;
-  let pais: string[] = [];
-  // prettier-ignore
-
-  let fengArr = ["東", "南", "西", "北"];
-  let positionArr = ["main", "xiajia", "duimian", "shangjia"];
-  const jushu = Math.floor(Math.random() * 8) + 1;
-  let zhuangfeng = fengArr[Math.floor((jushu - 1) / 4)];
-  let menfeng = fengArr[Math.floor(Math.random() * 4)];
-  function popPai(array: string[] = pais) {
-    const randomIndex = Math.floor(Math.random() * array.length);
-    return array.splice(randomIndex, 1)[0];
-  }
-  let order: string[];
-
-  const getOrder = (menfeng: string) => {
-    switch (menfeng) {
-      case "東":
-        return ["main", "xiajia", "duimian", "shangjia"];
-      case "北":
-        return ["xiajia", "duimian", "shangjia", "main"];
-      case "西":
-        return ["duimian", "shangjia", "main", "xiajia"];
-      default:
-        return ["shangjia", "main", "xiajia", "duimian"];
-    }
+  game: { action: string | null,
+    turn: string | null,
+    dapai: string | null,
+    zimopai: string | null,
+    fulou: string | null,
+    qipai: string|null,
+    fulouCandidates: string|null,
+    lizhipai: string|null,
+    hule: string|null
   };
 
-  function extractPai(target: string, arr: string[] = pais): string | undefined {
-    const index = arr.indexOf(target);
-    if (index === -1) {
-      return undefined;
+  constructor(game:{
+    action?: string | null,
+    turn?: string | null,
+    dapai?: string | null,
+    zimopai?: string | null,
+    fulou?: string | null,
+    qipai?: string|null,
+    fulouCandidates?: string|null,
+    lizhipai?: string|null,
+    hule?: string|null,
+  }){
+    this.type="game",
+    this.game={
+      action: game.action??null,
+      turn:game.turn??null,
+      dapai: game.dapai??null,
+      zimopai: game.zimopai??null,
+      fulou: game.fulou??null,
+      qipai:game.qipai??null,
+      fulouCandidates: game.fulouCandidates??null,
+      lizhipai:game.lizhipai??null,
+      hule:game.hule??null,
     }
-    return arr.splice(index, 1)[0];
   }
+}
+
+
+describe("Board", () => {
+  let scoreMessage={
+    "type": "score",
+    "score": {
+        "zhuangfeng": "東","menfeng": "東","jushu": 1,"jicun": 0,"changbang": 0,
+        "defen": [25000,25000,25000,25000],
+        "baopai": ["m1f","b0f","b0f","b0f","b0f"],
+        "paishu": 70
+    }
+  }
+  let gameMessage:GameMessage=new GameMessage({})
+  let server=new Server('ws://localhost:4173/', { mock: false });
+  const getNextPosition=(pos:string)=>{
+    const positions=["main","xiajia","duimian","shangjia","main"]
+    const nexIdx= positions.indexOf(pos)+1
+    if (nexIdx==0) throw new Error(`正しいポジションを指定してください.position:${pos}`)
+    return positions[nexIdx]
+  }
+
+  
+  
   beforeEach(() => {
-    // prettier-ignore
-    pais=[
-      "m1",  "m1",  "m1",  "m1",  "m2",  "m2",  "m2",  "m2",  "m3",  "m3",  "m3",  "m3",  "m4",  "m4",  "m4",  "m4",  "m5",  "m5",  "m5",  "m5t",  "m6","m6",  "m6",  "m6",  "m7",  "m7",  "m7",  "m7",  "m8",  "m8",  "m8",  "m8",  "m9",  "m9",  "m9",  "m9",  //萬子
-      "s1","s1",  "s1",  "s1",  "s2",  "s2",  "s2",  "s2",  "s3",  "s3",  "s3",  "s3",  "s4",  "s4",  "s4",  "s4",  "s5",  "s5",  "s5",  "s5t",  "s6", "s6",  "s6",  "s6",  "s7",  "s7",  "s7",  "s7",  "s8",  "s8",  "s8",  "s8",  "s9",  "s9",  "s9",  "s9",   //索子
-      "p1","p1",  "p1",  "p1",  "p2",  "p2",  "p2",  "p2",  "p3",  "p3",  "p3",  "p3",  "p4",  "p4",  "p4",  "p4",  "p5",  "p5",  "p5",  "p5t",  "p6",  "p6",  "p6",  "p6",  "p7",  "p7",  "p7",  "p7",  "p8",  "p8",  "p8",  "p8",  "p9",  "p9",  "p9",  "p9",   //筒子
-      "z1","z1",  "z1",  "z1",  "z2",  "z2",  "z2",  "z2",  "z3",  "z3",  "z3",  "z3",  "z4",  "z4",  "z4",  "z4",  "z5",  "z5",  "z5",  "z5",  "z6",  "z6",  "z6",  "z6",  "z7",  "z7",  "z7",  "z7",//字牌
-    ];
-    const qipai = initQipai
-      ? initQipai
-          .map((p) => extractPai(p))
-          .sort()
-          .join("+")
-      : Array.from({ length: 13 }, () => popPai())
-          .sort()
-          .join("+");
-    const wangpai = Array.from({ length: 14 }, () => popPai());
-    const taqipai = Array.from({ length: 13 * 3 }, () => popPai()).join("+"); //他家配牌分
-    console.log("qipaigo pais", pais);
+    cy.visit("/",{onBeforeLoad(win){
+      win.WebSocket=WebSocket
+      server=new Server("ws://127.0.0.1:8000/ws")
+    }})
+    
+  })
+  it("lizhi", () => {
+    //
+    let zimoCounter=0
+    const zimoCountLimit=5
+    //ハンドラー
+    const _kaijuHandler=(socket:Client,message:GameMessage)=>{
+      gameMessage=new GameMessage({
+        "action": "qipai",
+        "qipai": "m1f+m1f+m1f+m3f+m4f+m5f+m8f+m8f+m8f+p1f+p1f+p3f+p4f",
+      })
+      socket.send(JSON.stringify(gameMessage))
+    }
 
-    //配牌
-    cy.visit("/");
-    cy.get(".testplay").click().wait(500);
-  });
+    const _qipaiHandler=(socket:Client,message:GameMessage)=>{
+      gameMessage=new GameMessage({
+        "action": "zimo",
+        "turn":"main",
+        "zimopai": "z1f",
+        "lizhipai":"z1f"
+      })
+      socket.send(JSON.stringify(gameMessage))
+    }
 
-  it("fulou", () => {
-    cy.wrap({}).then(() => {
-      console.log(pais);
-      cy.pause();
-    });
-    cy.wrap({}).then(() => {
-      console.log(extractPai("z1"));
-      cy.pause();
-    });
-    cy.wrap({}).then(() => {
-      console.log(pais);
-      cy.pause();
-    });
+    const _zimoHandler=(socket:Client,message:GameMessage)=>{
+      zimoCounter++
+      if (zimoCounter>zimoCountLimit){
+        return
+      }
+      if (message.game.lizhipai !=null){
+        const fulouCandidates=message.game.turn=="main"?"chi,m2,m3+m4,null" :null
+        gameMessage=new GameMessage({
+          "action": "lizhi",
+          "turn":message.game.turn,
+          "dapai": message.game.lizhipai,
+          "fulouCandidates":fulouCandidates
+        })
+      }
+      else if(message.game.hule !=null){
+        gameMessage=new GameMessage({
+          "action": "hule",
+          "turn":message.game.turn,
+          "hule": message.game.hule,
+        })
+      }
+      else{
+        const dapai=message.game.dapai==null?`p${zimoCounter%9}f,99`:message.game.dapai
+        
+        gameMessage=new GameMessage({
+          "action": "dapai",
+          "turn":message.game.turn,
+          "dapai": dapai,
+          "hule": "p2f+p5f",
+        })
+      }
+      socket.send(JSON.stringify(gameMessage))
+    }
+
+    const _dapaiHandler=(socket:Client,message:GameMessage)=>{
+      const nextPos=getNextPosition(message.game.turn!)
+      const zimopai=nextPos=="main"?"p2f":"b0f" 
+      const hule=nextPos=="main"?"p2f+p5f":null 
+      gameMessage=new GameMessage({
+        "action": "zimo",
+        "turn":nextPos,
+        "zimopai": zimopai,
+        "hule": hule,
+      })
+      socket.send(JSON.stringify(gameMessage))
+    }
+
+    const _lizhiHandler=(socket:Client,message:GameMessage)=>{
+      _dapaiHandler(socket,message)
+    }
+
+
+
+    const _connectionHandler=(socket:Client)=>{
+      console.log("mockserver listening･･･")
+      socket.send(JSON.stringify(scoreMessage))
+      socket.on("message",(message)=>{
+        gameMessage=JSON.parse(message as string) as GameMessage
+        if (gameMessage.game.action=="kaiju") _kaijuHandler(socket,gameMessage)
+        else if (gameMessage.game.action=="qipai") _qipaiHandler(socket,gameMessage)
+        else if (gameMessage.game.action=="zimo") _zimoHandler(socket,gameMessage)
+        else if (gameMessage.game.action=="lizhi") _lizhiHandler(socket,gameMessage)
+        else if (gameMessage.game.action=="dapai") _dapaiHandler(socket,gameMessage)
+      })
+    }
+
+    //メイン処理
+    server.on("connection",_connectionHandler)
+    cy.get(".testplay").should("exist").click()
+    cy.get('.lizhi').should("exist").click()
+    cy.get('.zimo').should("exist").click()
+    cy.get('.xiajia-he').find("img").should('have.length', 1)
+    cy.get('.main-player-action').find("button").should('have.length', 2)
+    cy.get('.cancel').should("exist").click()
+    cy.get('.duimian-he').find("img").should('have.length', 1)
+    cy.get('.shangjia-he').find("img").should('have.length', 1)
+    cy.get('.main-player-action').find("button").should('have.length', 2)
+    cy.get('.hule').should("exist").click()
+    
+    // cy.get('.hule').click().get('.zimo').click()
   });
 });

@@ -78,11 +78,20 @@ export class Score {
     return jushuName;
   }
 
-  getPlayerFeng() {
-    const fengOrder: Feng[] = ["東", "南", "西", "北"];
-    const startIndex = fengOrder.indexOf(this.menfeng);
-    return [...fengOrder.slice(startIndex), ...fengOrder.slice(0, startIndex)];
+  getPlayerFeng(pos:Position) {
+    const fengOrder: Feng[] = ["東", "南", "西", "北","東", "南", "西", "北"];
+    const positionOrder: Position[] = ["main", "xiajia", "duimian", "shangjia"];
+    const sortOrder=fengOrder.slice(fengOrder.indexOf(this.menfeng),fengOrder.lastIndexOf(this.menfeng))
+    return sortOrder[positionOrder.indexOf(pos)]
   }
+
+  getPlayerDefen(pos:Position) {
+    const fengOrder: Feng[] = ["東", "南", "西", "北"];
+    const jushu=(this.jushu-1) % 4
+    return this.defen[(fengOrder.indexOf(this.getPlayerFeng(pos))+(this.jushu-1))%4]
+  }
+
+  
 
   update(score:ScoreProperty){
     this.zhuangfeng =  score.zhuangfeng===undefined? this.zhuangfeng:score.zhuangfeng

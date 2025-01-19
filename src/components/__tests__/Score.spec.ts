@@ -59,19 +59,14 @@ describe("Overview", () => {
     expect(wrapper.find('[class="jicun"]').text()).toBe(":2");
 
     //得点
+    gameStore.score.jushu=4
+    gameStore.score.menfeng="南"
     gameStore.score.defen=[10000,20000,30000,40000]
     await flushPromises();
-    expect(wrapper.find('[class="shangjia"]').text()).toBe("北:40000");
-    expect(wrapper.find('[class="duimian"]').text()).toBe("西:30000");
-    expect(wrapper.find('[class="main"]').text()).toBe("東:10000");
-    expect(wrapper.find('[class="xiajia"]').text()).toBe("南:20000");
-
-    //自風
-    gameStore.score.menfeng="南"
-    await flushPromises();
-    expect(wrapper.find('[class="shangjia"]').text()).toBe("東:40000");
-    expect(wrapper.find('[class="duimian"]').text()).toBe("北:30000");
     expect(wrapper.find('[class="main"]').text()).toBe("南:10000");
     expect(wrapper.find('[class="xiajia"]').text()).toBe("西:20000");
+    expect(wrapper.find('[class="duimian"]').text()).toBe("北:30000");
+    expect(wrapper.find('[class="shangjia"]').text()).toBe("東:40000");
+
   })
 });

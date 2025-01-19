@@ -1,0 +1,24 @@
+{
+    "type": "score",
+    "score": {
+        "zhuangfeng": "東",
+        "menfeng": "東",
+        "jushu": 1,
+        "jicun": 0,
+        "changbang": 0,
+        "defen": [
+            25000,
+            25000,
+            25000,
+            25000
+        ],
+        "baopai": [
+            "m1f",
+            "b0f",
+            "b0f",
+            "b0f",
+            "b0f"
+        ],
+        "paishu": 70
+    }
+  }

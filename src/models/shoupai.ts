@@ -229,6 +229,7 @@ export class Shoupai {
     this.zimopai=shoupai.zimopai
     this.huleCandidates=shoupai.huleCandidates
     this.fulouCandidates=shoupai.fulouCandidates
+    
   }
 
 

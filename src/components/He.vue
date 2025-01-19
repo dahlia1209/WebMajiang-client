@@ -36,6 +36,7 @@ const _qipaiHandler = () => {
   }
   const commonProcess = () => {
     h.value.pai=[]
+    lizhiIndex.value=-1
   }
 
   //メイン処理

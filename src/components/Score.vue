@@ -60,20 +60,17 @@ watch([
             </div>
         </div>
         <div class="child-container">
-            <div class="shangjia">
-                
-                {{ s.getPlayerFeng()[3] }}:{{ s.defen[3] }}
-            </div>
-            <div class="childchild-container">
-                <div class="duimian">
-                    {{ s.getPlayerFeng()[2] }}:{{ s.defen[2] }}
-                </div>
-                <div class="main">
-                    {{ s.getPlayerFeng()[0] }}:{{ s.defen[0] }}
-                </div>
+            <div class="main">
+                {{ s.getPlayerFeng("main") }}:{{ s.getPlayerDefen("main") }}
             </div>
             <div class="xiajia">
-                {{ s.getPlayerFeng()[1] }}:{{ s.defen[1] }}
+                {{ s.getPlayerFeng("xiajia") }}:{{ s.getPlayerDefen("xiajia") }}
+            </div>
+            <div class="duimian">
+                {{ s.getPlayerFeng("duimian") }}:{{ s.getPlayerDefen("duimian") }}
+            </div>
+            <div class="shangjia">
+                {{ s.getPlayerFeng("shangjia") }}:{{ s.getPlayerDefen("shangjia") }}
             </div>
         </div>
 
@@ -105,6 +102,7 @@ watch([
 .child-container{
     display: flex;
     flex-direction: row;
+    height: 100px;
 }
 
 .childchild-container{
@@ -118,5 +116,25 @@ watch([
 .baopai{
     zoom: 0.3
     
+}
+
+.main {
+    position: absolute;
+    transform: translate(-30px, 30px);
+}
+
+.xiajia {
+    position: absolute;
+    transform: translate(60px, 15px);
+}
+
+.duimian {
+    position: absolute;
+    transform: translate(-30px, 0px);
+}
+
+.shangjia {
+    position: absolute;
+    transform: translate(-120px, 15px);
 }
 </style>

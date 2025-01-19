@@ -25,8 +25,14 @@ export const useGameStore = defineStore("game", {
     getDapai:(state)=>{
       return state.game.dapai ==null ? null : Pai.deserialize(state.game.dapai.serialize())
     },
+    getHule:(state)=>{
+      return state.game.hule.map(x=>Pai.deserialize(x.serialize()))
+    },
     getZimopai:(state)=>{
       return state.game.zimopai ==null ? null : Pai.deserialize(state.game.zimopai.serialize())
+    },
+    getLizhipai:(state)=>{
+      return state.game.lizhipai.map(x=>Pai.deserialize(x.serialize()))
     },
     getFulou:(state)=>{
       return state.game.fulou ==null ? null : Fulou.deserialize(state.game.fulou.serialize())

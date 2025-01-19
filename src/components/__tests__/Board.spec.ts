@@ -311,8 +311,7 @@ describe("Board", () => {
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img")[2].attributes("name")).toBe("m1");
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img")[3].attributes("name")).toBe("m4");
     expect(wrapper.findComponent(".main-shoupai").find(".fulou").findAll(".mianzi").length).toBe(1);
-    expect(wrapper.findComponent(".main-shoupai").findAll("button").length).toBe(1);
-    expect(wrapper.findComponent(".main-shoupai").findAll("button")[0].classes("hidden")).toBe(true);
+    expect(wrapper.findComponent(".main-shoupai").findAll("button").length).toBe(0);
 
     //自家打牌
     expect(wrapper.findComponent(".main-shoupai").find(".bingpai").findAll("img")[0].classes("clickable")).toBe(true);

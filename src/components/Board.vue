@@ -43,9 +43,10 @@ const messageHandler = (msg: any) => {
         const gf = gc.fulou == null ? gc.fulou : Fulou.deserialize(gc.fulou)
         const gq = gc.qipai == null ? [] : gc.qipai.split("+").map(x => Pai.deserialize(x))
         const gfc = gc.fulouCandidates == null ? [] : gc.fulouCandidates.split("|").map(x => Fulou.deserialize(x))
-        const glp = gc.lizhiPai == null ? [] : gc.lizhiPai.split("+").map(x => Pai.deserialize(x))
+        const glp = gc.lizhipai == null ? [] : gc.lizhipai.split("+").map(x => Pai.deserialize(x))
+        const gh = gc.hule == null ? [] : gc.hule.split("+").map(x => Pai.deserialize(x))
         
-        gameStore.game=new GameStatus({ action: gc.action, turn: gc.turn, dapai: gd, dapaiIdx:gdi,zimopai: gz, fulou: gf, qipai: gq,fulouCandidates:gfc,lizhiPai:glp })
+        gameStore.game=new GameStatus({ action: gc.action, turn: gc.turn, dapai: gd, dapaiIdx:gdi,zimopai: gz, fulou: gf, qipai: gq,fulouCandidates:gfc,lizhipai:glp,hule:gh })
         break;
       case MessageType.Score:
       console.log("clientonmessage,score",m)

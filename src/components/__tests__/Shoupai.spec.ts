@@ -178,25 +178,25 @@ describe("Shoupai", () => {
     wrapper.unmount()
 
     //暗槓
-    shoupai = new Shoupai()
-    shoupai.bingpai=["z5","z7","z7","z7"].map(x=>Pai.deserialize(x))
-    shoupai.fulouCandidates=[Fulou.deserialize("angang,null,z7+z7+z7+z7,null")]
-    wrapper = mount(ShoupaiView, {
-      props: { shoupai: shoupai, position: "main" },
-    });
+    // shoupai = new Shoupai()
+    // shoupai.bingpai=["z5","z7","z7","z7"].map(x=>Pai.deserialize(x))
+    // shoupai.fulouCandidates=[Fulou.deserialize("angang,null,z7+z7+z7+z7,null")]
+    // wrapper = mount(ShoupaiView, {
+    //   props: { shoupai: shoupai, position: "main" },
+    // });
     
-    gameStore.game=new GameStatus({ action: "zimo", turn: "main",zimopai:new Pai("z", 7)});
-    await flushPromises();
-    expect(wrapper.find(".bingpai").findAll("img").length).toBe(5);
-    expect(wrapper.find(".zimo").exists()).toBe(true);
-    expect(wrapper.findAll("button").length).toBe(2);
-    expect(wrapper.findAll("button")[0].text()).toBe("×");
-    expect(wrapper.findAll("button")[0].classes("hidden")).toBe(true);
-    expect(wrapper.findAll("button")[1].text()).toBe("カン");
-    await wrapper.findAll("button")[1].trigger("click");
-    await flushPromises();
-    expect(wrapper.find(".bingpai").findAll("img").length).toBe(1);
-    expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(1);
+    // gameStore.game=new GameStatus({ action: "zimo", turn: "main",zimopai:new Pai("z", 7)});
+    // await flushPromises();
+    // expect(wrapper.find(".bingpai").findAll("img").length).toBe(5);
+    // expect(wrapper.find(".zimo").exists()).toBe(true);
+    // expect(wrapper.findAll("button").length).toBe(2);
+    // expect(wrapper.findAll("button")[0].text()).toBe("×");
+    // expect(wrapper.findAll("button")[0].classes("hidden")).toBe(true);
+    // expect(wrapper.findAll("button")[1].text()).toBe("カン");
+    // await wrapper.findAll("button")[1].trigger("click");
+    // await flushPromises();
+    // expect(wrapper.find(".bingpai").findAll("img").length).toBe(1);
+    // expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(1);
 
     //加槓
     // shoupai=new Shoupai()

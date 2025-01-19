@@ -43,7 +43,8 @@ export interface GameMessage extends BaseMessage {
     fulou: string | null;
     qipai: string|null;
     fulouCandidates: string|null;
-    lizhiPai: string|null;
+    lizhipai: string|null;
+    hule: string|null;
   };
 }
 
@@ -66,11 +67,13 @@ interface BaseMessage {
 }
 
 export interface callbackProperty{
-  action?: PlayerAction, 
+  action?: PlayerAction,
+  turn?:Position, 
   dapai?: Pai, 
+  hule?: Pai, 
   dapaiIdx?: number, 
   fulou?: Fulou,
-
+  lizhipai?:Pai
 }
 
 export const useWebSocketService = (connectionUrl: string) => {
@@ -170,7 +173,9 @@ export const useWebSocketService = (connectionUrl: string) => {
       fulou?: string ,
       qipai?: string,
       fulouCandidates?:string,
-      lizhiPai?:string
+      lizhipai?:string,
+      hule?:string,
+      
     })=>{
       const gameMessage={
           type:type,
@@ -183,7 +188,8 @@ export const useWebSocketService = (connectionUrl: string) => {
           fulou: game && game.fulou ? game.fulou:null,
           qipai: game && game.qipai ? game.qipai:null,
           fulouCandidates:game && game.fulouCandidates?game.fulouCandidates:null,
-          lizhiPai:game && game.lizhiPai?game.lizhiPai:null,
+          lizhipai:game && game.lizhipai?game.lizhipai:null,
+          hule:game && game.hule?game.hule:null,
           }
         } as GameMessage
         return gameMessage
@@ -191,9 +197,12 @@ export const useWebSocketService = (connectionUrl: string) => {
 
   const callbackMessage = (cb?:callbackProperty) => {
     const action=cb && cb.action ? cb.action:undefined
+    const turn=cb && cb.turn ? cb.turn:undefined
     const fulou=cb && cb.fulou ? cb.fulou.serialize():undefined
+    const hule=cb && cb.hule ? cb.hule.serialize():undefined
     const dapai=cb && cb.dapai && cb.dapaiIdx!=null ? [cb.dapai.serialize(),cb.dapaiIdx.toString()].join(","):undefined
-    const format=initGameMessage(MessageType.Game,{action,fulou,dapai})
+    const lizhipai=cb && cb.lizhipai && cb.dapaiIdx!=null ? [cb.lizhipai.serialize(),cb.dapaiIdx.toString()].join(","):undefined
+    const format=initGameMessage(MessageType.Game,{action,fulou,dapai,lizhipai,turn,hule})
     // const format: GameMessage = {
     //   type: MessageType.Game,
     //   game: {

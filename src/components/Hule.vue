@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Position } from '@/models/type';
 import { useGameStore } from '@/stores/game'
 import { useWebSocketStore } from '@/stores/websocket'
 
@@ -6,7 +7,7 @@ const gameStore = useGameStore()
 const wsStore = useWebSocketStore();
 
 const clickHandle=()=>{
-  wsStore.client.callbackMessage({action:"pingju"})
+  wsStore.client.callbackMessage({action:gameStore.getAction!,turn:gameStore.getTurn!})
 }
 </script>
 
@@ -44,7 +45,7 @@ const clickHandle=()=>{
 
         </div>
         <div class="fenpei">
-          <div v-for="(p,i) in ['main','xiajia','duimian','shangjia']" :class="p">{{ gameStore.score.getPlayerFeng()[i] }}</div>
+          <div v-for="(p,i) in ['main','xiajia','duimian','shangjia']" :class="p">{{ gameStore.score.getPlayerFeng(p as Position) }}</div>
           <!-- <div class="main"><span class="feng">南</span>: <span class="player">私</span><span
               class="defen">25,000</span><span class="diff"></span></div>
           <div class="xiajia"><span class="feng">西</span>: <span class="player">下家</span><span

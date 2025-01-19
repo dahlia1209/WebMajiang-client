@@ -4,6 +4,7 @@ import { usePai, Pai } from "../pai";
 import { useShoupai, Shoupai, Fulou, createPais } from "../shoupai";
 import { useScore, Score } from "../score";
 import { ref } from "vue";
+import type { Position } from "../type";
 
 describe("useScore", () => {
   it("useScore init", () => {
@@ -67,13 +68,13 @@ describe("useScore", () => {
     let score;
     score = useScore(new Score());
     score.value.menfeng="東"
-    expect(score.value.getPlayerFeng()).toStrictEqual(["東","南","西","北",])
+    expect(["main", "xiajia", "duimian", "shangjia"].map(x=>score.value.getPlayerFeng(x as Position))).toStrictEqual(["東","南","西","北",])
     score.value.menfeng="南"
-    expect(score.value.getPlayerFeng()).toStrictEqual(["南","西","北","東",])
+    expect(["main", "xiajia", "duimian", "shangjia"].map(x=>score.value.getPlayerFeng(x as Position))).toStrictEqual(["南","西","北","東",])
     score.value.menfeng="西"
-    expect(score.value.getPlayerFeng()).toStrictEqual(["西","北","東","南",])
+    expect(["main", "xiajia", "duimian", "shangjia"].map(x=>score.value.getPlayerFeng(x as Position))).toStrictEqual(["西","北","東","南",])
     score.value.menfeng="北"
-    expect(score.value.getPlayerFeng()).toStrictEqual(["北","東","南","西",])
+    expect(["main", "xiajia", "duimian", "shangjia"].map(x=>score.value.getPlayerFeng(x as Position))).toStrictEqual(["北","東","南","西",])
   })
 
   it("update",()=>{

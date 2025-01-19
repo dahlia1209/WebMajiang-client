@@ -10,13 +10,15 @@ export interface GameStatusProperty {
   turn?: Position | null;
   // status?: PlayerStatus | null;
   dapai?: Pai | null;
+  
   dapaiIdx?: number | null;
   zimopai?: Pai | null;
   // fulouCandidates?: Fulou[];
   fulou?: Fulou | null;
   qipai?: Pai[];
   fulouCandidates?: Fulou[];
-  lizhiPai?: Pai[];
+  lizhipai?: Pai[];
+  hule?:Pai[];
 }
 
 export class GameStatus {
@@ -28,7 +30,8 @@ export class GameStatus {
   fulou;
   qipai;
   fulouCandidates;
-  lizhiPai;
+  lizhipai;
+  hule;
 
   constructor(option?: GameStatusProperty) {
     this.action = option && option.action ? option.action : null;
@@ -39,7 +42,8 @@ export class GameStatus {
     this.fulou = option && option.fulou ? option.fulou : null;
     this.qipai = option && option.qipai  ? option.qipai : [];
     this.fulouCandidates = option && option.fulouCandidates  ? option.fulouCandidates : [];
-    this.lizhiPai = option && option.lizhiPai  ? option.lizhiPai : [];
+    this.lizhipai = option && option.lizhipai  ? option.lizhipai : [];
+    this.hule = option && option.hule  ? option.hule : [];
   }
 
   update(option: GameStatusProperty) {
