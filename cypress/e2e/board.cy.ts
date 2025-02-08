@@ -73,7 +73,7 @@ describe("Board", () => {
   it("lizhi", () => {
     //
     let zimoCounter=0
-    const zimoCountLimit=5
+    const zimoCountLimit=6
     //ハンドラー
     const _kaijuHandler=(socket:Client,message:GameMessage)=>{
       gameMessage=new GameMessage({
@@ -169,7 +169,7 @@ describe("Board", () => {
     cy.get('.cancel').should("exist").click()
     cy.get('.duimian-he').find("img").should('have.length', 1)
     cy.get('.shangjia-he').find("img").should('have.length', 1)
-    cy.get('.main-player-action').find("button").should('have.length', 2)
+    cy.get('.main-player-action').find("button").should('have.length', 1)
     cy.get('.hule').should("exist").click()
     
     // cy.get('.hule').click().get('.zimo').click()

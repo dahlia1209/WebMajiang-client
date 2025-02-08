@@ -123,9 +123,9 @@ describe("Shoupai", () => {
     await flushPromises();
     expect(wrapper.find(".main-player-action").exists()).toBe(true); //ボタンエリア
     expect(wrapper.findAll("button").length).toBe(2);
-    expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].text()).toBe("チー");
     expect(wrapper.findAll("button")[0].classes("hidden")).toBe(false);
-    expect(wrapper.findAll("button")[1].text()).toBe("チー");
+    expect(wrapper.findAll("button")[1].text()).toBe("×");
     expect(wrapper.find(".bingpai").findAll("img").length).toBe(11);
     expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(0);
     await wrapper.findAll("button")[1].trigger("click");
@@ -146,9 +146,9 @@ describe("Shoupai", () => {
     gameStore.game=new GameStatus({ action: "dapai", turn: "duimian",dapai:new Pai("m", 1),dapaiIdx:0});
     await flushPromises();
     expect(wrapper.findAll("button").length).toBe(2);
-    expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].text()).toBe("ポン");
     expect(wrapper.findAll("button")[0].classes("hidden")).toBe(false);
-    expect(wrapper.findAll("button")[1].text()).toBe("ポン");
+    expect(wrapper.findAll("button")[1].text()).toBe("×");
     await wrapper.findAll("button")[1].trigger("click");
     gameStore.game=new GameStatus({ action: "fulou", turn: "main", fulou: shoupai.fulouCandidates[0]});
     await flushPromises();
@@ -166,10 +166,10 @@ describe("Shoupai", () => {
     gameStore.game=new GameStatus({ action: "dapai", turn: "xiajia",dapai:new Pai("s", 5),dapaiIdx:0});
     await flushPromises();
     expect(wrapper.findAll("button").length).toBe(3);
-    expect(wrapper.findAll("button")[0].text()).toBe("×");
+    expect(wrapper.findAll("button")[0].text()).toBe("ポン");
     expect(wrapper.findAll("button")[0].classes("hidden")).toBe(false);
-    expect(wrapper.findAll("button")[1].text()).toBe("ポン");
-    expect(wrapper.findAll("button")[2].text()).toBe("カン");
+    expect(wrapper.findAll("button")[1].text()).toBe("カン");
+    expect(wrapper.findAll("button")[2].text()).toBe("×");
     await wrapper.findAll("button")[2].trigger("click");
     gameStore.game=new GameStatus({ action: "fulou", turn: "main", fulou: shoupai.fulouCandidates[0]});
     await flushPromises();

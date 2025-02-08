@@ -58,10 +58,10 @@ export class Pai {
     return this.suit.toString() + numStr;
   }
 
-  serialize() {
+  serialize(length:number=3) {
     const a = this.isRed ? "t" : "f";
     const s = this.suit + String(this.num) + a;
-    return s;
+    return s.slice(0,length);
   }
 
   static deserialize(str: string) {

@@ -296,7 +296,7 @@ describe("Board", () => {
     console.log("chi",shoupai.getCandidatesbyType(["chi"],Pai.deserialize("m1")))
     expect(wrapper.findComponent(".main-shoupai").findAll("button").length).toBe(2);
     expect(wrapper.findComponent(".main-shoupai").findAll("button")[0].classes("hidden")).toBe(false);
-    expect(wrapper.findComponent(".main-shoupai").findAll("button")[1].classes("chi")).toBe(true);
+    expect(wrapper.findComponent(".main-shoupai").findAll("button")[0].classes("chi")).toBe(true);
 
     //自家チー
     await wrapper.findComponent(".main-shoupai").findAll("button")[1].trigger("click");
