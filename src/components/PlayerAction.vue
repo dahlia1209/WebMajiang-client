@@ -11,16 +11,10 @@ import { useWebSocketStore } from '@/stores/websocket'
 import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 
 const props = defineProps<{
-  // position: Position,
   condition:boolean,
   displayName:string,
   actionName:string,
 }>()
-
-// const emit = defineEmits<{
-//   cancel: []
-//   actionBy:[]
-// }>()
 
 </script>
 

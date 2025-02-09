@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { type Position } from "@/models/type";
 
 export type FulouType = "chi" | "peng" | "minggang" | "angang" | "jiagang";
-
+export type PaiIdx = [ Pai,number];
 export class Fulou {
   type: FulouType;
   fuloupai: Pai | null;
@@ -62,27 +62,25 @@ export class Shoupai {
     this.fulouCandidates = fulouCandidates;
   }
 
-  doLipai(){
-    const sortedPai=[...this.bingpai,...(this.zimopai ==null?[]:[this.zimopai])]
-    sortedPai.sort((a,b)=>a.serialize().localeCompare(b.serialize()))
+  doLipai() {
+    const sortedPai = [...this.bingpai, ...(this.zimopai == null ? [] : [this.zimopai])];
+    sortedPai.sort((a, b) => a.serialize().localeCompare(b.serialize()));
 
-    this.zimopai=null
-    this.bingpai=sortedPai
+    this.zimopai = null;
+    this.bingpai = sortedPai;
   }
 
-  doDapai(dapai:Pai,dapaiIdx:number,validation:boolean){
-    if (validation)this.checkDapai(dapai,dapaiIdx);
+  doDapai(dapai: Pai, dapaiIdx: number, validation: boolean) {
+    if (validation) this.checkDapai(dapai, dapaiIdx);
 
-    if (0<=dapaiIdx && dapaiIdx<this.bingpai.length){
-      this.bingpai=this.bingpai.filter((x,i)=>i!=dapaiIdx)
-    }else if(dapaiIdx==99){
-      this.zimopai=null
+    if (0 <= dapaiIdx && dapaiIdx < this.bingpai.length) {
+      this.bingpai = this.bingpai.filter((x, i) => i != dapaiIdx);
+    } else if (dapaiIdx == 99) {
+      this.zimopai = null;
     }
   }
 
-  private checkDapai(dapai:Pai,dapaiIdx:number){
-
-  }
+  private checkDapai(dapai: Pai, dapaiIdx: number) {}
 
   addPai(pai: Pai): void {
     this.zimopai = pai;
@@ -91,7 +89,9 @@ export class Shoupai {
 
   setZimopai(pai: Pai): void {
     if (this.zimopai != null) {
-      throw new Error(`ツモ牌がセットされています。与えられたツモ牌:${pai.serialize()},セット中のツモ牌：${this.zimopai.serialize()},`);
+      throw new Error(
+        `ツモ牌がセットされています。与えられたツモ牌:${pai.serialize()},セット中のツモ牌：${this.zimopai.serialize()},`
+      );
     }
     this.zimopai = pai;
   }
@@ -150,39 +150,40 @@ export class Shoupai {
     this.fulou.unshift(fulou);
   }
 
-
   doFulou(fulou: Fulou) {
-    if (fulou.type == "chi" || fulou.type == "minggang" || fulou.type == "peng" ) {
+    if (fulou.type == "chi" || fulou.type == "minggang" || fulou.type == "peng") {
       fulou.menpais.forEach((p) => {
-        const idx = this.bingpai.findIndex((bp) => p.serialize().slice(0.2)==bp.serialize().slice(0.2));
+        const idx = this.bingpai.findIndex((bp) => p.serialize().slice(0.2) == bp.serialize().slice(0.2));
         if (idx < 0) throw Error(`${fulou.type}ができません。次の牌がありません:${p.serialize()}`);
         this.removPaiFromBingpai(idx);
       });
       this.addFulou(fulou);
     } else if (fulou.type == "angang") {
-      let angangPai:Pai[]=[]
-      let bingpai:Pai[]=[];
+      let angangPai: Pai[] = [];
+      let bingpai: Pai[] = [];
 
-      [...this.bingpai , ...(this.zimopai==null ? [] :[this.zimopai])].forEach(p => {
-        if (p.serialize().slice(0,2)==fulou.menpais[0].serialize().slice(0,2)) {
-          angangPai.push(p)
-        }else {
-            bingpai.push(p)
-          }
+      [...this.bingpai, ...(this.zimopai == null ? [] : [this.zimopai])].forEach((p) => {
+        if (p.serialize().slice(0, 2) == fulou.menpais[0].serialize().slice(0, 2)) {
+          angangPai.push(p);
+        } else {
+          bingpai.push(p);
+        }
       });
-      if (angangPai.length!=4){
-        throw new Error(`指定された暗槓はできません.暗槓:${fulou.serialize()},手牌:${this.bingpai.map(x=>x.serialize()).join("+")}`)
+      if (angangPai.length != 4) {
+        throw new Error(
+          `指定された暗槓はできません.暗槓:${fulou.serialize()},手牌:${this.bingpai
+            .map((x) => x.serialize())
+            .join("+")}`
+        );
       }
-      fulou.menpais=angangPai
+      fulou.menpais = angangPai;
       this.addFulou(fulou);
-      this.bingpai=bingpai
-      this.zimopai=null
+      this.bingpai = bingpai;
+      this.zimopai = null;
       // console.log("bingpai,angangPai",bingpai,angangPai)
-
-
-    }else if (fulou.type == "jiagang") {
+    } else if (fulou.type == "jiagang") {
       const matchedFulouIndex = this.fulou.findIndex(
-        (f) => f.type == "peng" && f.fuloupai && fulou.fuloupai && f.fuloupai.serialize()==fulou.fuloupai.serialize()
+        (f) => f.type == "peng" && f.fuloupai && fulou.fuloupai && f.fuloupai.serialize() == fulou.fuloupai.serialize()
       );
       if (matchedFulouIndex < 0) throw Error(`${fulou.type}ができません。`);
       const matchedBingpaiIdx = [...this.bingpai, this.zimopai].findIndex(
@@ -209,30 +210,32 @@ export class Shoupai {
     }
   }
 
-  getCandidatesbyType(types:FulouType[],fuloupai?:Pai|null){
-    let fileteredFulouCandidates= this.fulouCandidates.filter(
-      x=>types.includes(x.type) && 
-      fuloupai?.serialize().slice(0,2)==x.fuloupai?.serialize().slice(0,2)
-    )
-    if (fuloupai==null){
-      fileteredFulouCandidates= fileteredFulouCandidates.filter(
-        x=>["angang","jiagang"].includes(x.type) 
-      )
+  getCandidatesbyType(types: FulouType[], fuloupai?: Pai | null) {
+    let fileteredFulouCandidates = this.fulouCandidates.filter(
+      (x) => types.includes(x.type) && fuloupai?.serialize().slice(0, 2) == x.fuloupai?.serialize().slice(0, 2)
+    );
+    if (fuloupai == null) {
+      fileteredFulouCandidates = fileteredFulouCandidates.filter((x) => ["angang", "jiagang"].includes(x.type));
     }
-    return fileteredFulouCandidates
+    return fileteredFulouCandidates;
   }
 
-  reset(){
-    const shoupai= new Shoupai()
-    Array(13).map(_=>this.bingpai.push(Pai.deserialize("b0")))
-    this.fulou=shoupai.fulou
-    this.zimopai=shoupai.zimopai
-    this.huleCandidates=shoupai.huleCandidates
-    this.fulouCandidates=shoupai.fulouCandidates
-    
+  reset() {
+    const shoupai = new Shoupai();
+    Array(13).map((_) => this.bingpai.push(Pai.deserialize("b0")));
+    this.fulou = shoupai.fulou;
+    this.zimopai = shoupai.zimopai;
+    this.huleCandidates = shoupai.huleCandidates;
+    this.fulouCandidates = shoupai.fulouCandidates;
   }
 
-
+  getBingpai() {
+    const bingpai = [
+      ...this.bingpai.map((x, i) => [Pai.deserialize(x.serialize()), i] as PaiIdx), //bingpai
+      ...(this.zimopai == null ? [] : [[Pai.deserialize(this.zimopai.serialize()), 99] as PaiIdx]), //zimopai
+    ];
+    return bingpai;
+  }
 }
 
 export const useShoupai = (shoupai: Shoupai) => {

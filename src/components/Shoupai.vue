@@ -93,8 +93,8 @@ const _actionHandlers = (() => {
     //ハンドラー関数
     const handlers = {
       mainSelfTurn: () => {
-        if (dapaiPackage.selfDapai.value == null || dapaiPackage.selfDapaiIdx.value == null) return
-        s.value.doDapai(dapaiPackage.selfDapai.value, dapaiPackage.selfDapaiIdx.value, true)
+        if (mainActions.dapai.selfDapai.value == null || mainActions.dapai.selfDapaiIdx.value == null) return
+        s.value.doDapai(mainActions.dapai.selfDapai.value, mainActions.dapai.selfDapaiIdx.value, true)
         s.value.fulouCandidates = gameStore.getFulouCandidates
         wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: gameStore.getTurn! })
       },
@@ -103,12 +103,12 @@ const _actionHandlers = (() => {
         wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: gameStore.getTurn! })
       },
       tajiaSelfTurn: () => {
-        if (dapaiPackage.selfDapai.value == null || dapaiPackage.selfDapaiIdx.value == null) return
-        s.value.doDapai(dapaiPackage.selfDapai.value, dapaiPackage.selfDapaiIdx.value, false)
+        if (mainActions.dapai.selfDapai.value == null || mainActions.dapai.selfDapaiIdx.value == null) return
+        s.value.doDapai(mainActions.dapai.selfDapai.value, mainActions.dapai.selfDapaiIdx.value, false)
       },
       tajiaOtherTurn: () => { }
     }
-    const commonProcess = () => { dapaiPackage.isSelectedDapai.value = false }
+    const commonProcess = () => { mainActions.dapai.isSelectedDapai.value = false }
 
     //メイン処理
     commonProcess()
@@ -147,7 +147,7 @@ const _actionHandlers = (() => {
         s.value.doLipai()
       }
     }
-    const commonProcess = () => { dapaiPackage.isSelectedDapai.value = false }
+    const commonProcess = () => { mainActions.dapai.isSelectedDapai.value = false }
 
     //メイン処理
     commonProcess()
@@ -177,23 +177,9 @@ watch([() => gameStore.getAction], (
 })
 
 
-//イベント関数
-const cancel=()=>{
-  mainActions.fulou.selectedFulou.value=null
-  mainActions.fulou.selectedFulouMenpaiIdx.value=[]
-  mainActions.lizhi.initSelectedLizhi()
-  const action=gameStore.getAction
-  if (action==null)return
-  wsStore.client.callbackMessage({action:action,turn:gameStore.getTurn!})
-}
-
-const clickHandler=(payload:{dapai:Pai,dapaiIdx:number})=>{
-  mainActions.lizhi.selectLichipai(payload)
-  mainActions.fulou.selectFuloupai(payload)
-  dapaiPackage.selectDapai(payload)
-}
-
-const dapaiPackage=(()=>{
+//メインアクション関数
+const mainActions = (() => {
+  const dapaiPackage=(()=>{
   const isSelectedDapai = ref(false)
   const selfDapaiIdx = computed(() => _isSelfTurn ? gameStore.getDapaiIdx : null)
   const selfDapai = computed(() => _isSelfTurn ? gameStore.getDapai : null)
@@ -204,22 +190,18 @@ const dapaiPackage=(()=>{
     wsStore.client.callbackMessage({ action: gameStore.getAction as PlayerAction, dapai: dapai, dapaiIdx: payload.idx, turn: gameStore.getTurn! })
   }
   const selectDapai = (payload: { dapai: Pai, dapaiIdx: number }) => {
-    if (dapaiPackage.canMainDapai.value) {
       _mainDapai({ idx: payload.dapaiIdx })
-    }
   }
 
   return {
     isSelectedDapai,
     selfDapai,
     selfDapaiIdx,
-    canMainDapai,
+    isSelectingMainDapai: canMainDapai,
     selectDapai
   }
 })()
 
-//メインアクション関数
-const mainActions = (() => {
   const hulePackage = (() => {
     const huleActionHander = (hule: Pai) => {
       // console.log("huleActionHander,hule",hule.serialize())
@@ -283,7 +265,6 @@ const mainActions = (() => {
     })
 
     const selectFuloupai = (payload: { dapai: Pai, dapaiIdx: number }) => {
-      if (isInSelectingMenpai.value) {
         if (isMenpaiCandidates(payload.dapai) && !selectedFulouMenpaiIdx.value.includes(payload.dapaiIdx)) {
           selectedFulou.value!.menpais.push(payload.dapai)
           selectedFulouMenpaiIdx.value.push(payload.dapaiIdx)
@@ -296,7 +277,6 @@ const mainActions = (() => {
           selectedFulouMenpaiIdx.value = []
           return
         }
-      }
     }
 
     const canMainFulou = computed(() => gameStore.getTurn == "shangjia" ? _canMainFulouofType(["chi", "peng", "minggang"]) : _canMainFulouofType(["peng", "minggang"]))
@@ -339,14 +319,12 @@ const mainActions = (() => {
       return []
     })
     const selectLichipai = (payload: { dapai: Pai, dapaiIdx: number }) => {
-      if (isInSelectingLizhipai.value) {
         if (isLizhipaiCandidates(payload.dapai)) {
           selectedLizhi.value = payload.dapai
           wsStore.client.callbackMessage({ action: gameStore.getAction!, lizhipai: selectedLizhi.value as Pai, dapaiIdx: payload.dapaiIdx, turn: gameStore.getTurn! })
           return
         }
         return
-      }
     }
     const lizhiActionHandler = () => selectedLizhi.value = Pai.deserialize("b0")
     const initSelectedLizhi = () => selectedLizhi.value = null
@@ -376,7 +354,8 @@ const mainActions = (() => {
   return {
     hule: hulePackage,
     fulou: fulouPackage,
-    lizhi: lizhiPackage
+    lizhi: lizhiPackage,
+    dapai:dapaiPackage
   }
 })()
 
@@ -387,48 +366,40 @@ const mainActions = (() => {
 
 <template>
   <div class="shoupai" :class="props.position">
-    <div>
-      <!-- <   @fulou="" @lizhi="" @hule="" @cancel=""/> -->
-      <!-- <BingpaiView :bingpai="(s.bingpai as Pai[])" :zimopai="(s.zimopai as Pai)" :position="props.position"  @dapai="dapai" /> -->
-    </div>
-
     <div class="bingpai">
       <div :class="['main-player-action',]" v-if="_isMainShoupai">
-        <PlayerActionView :condition="mainActions.hule.canMainRongHule.value"
-          :display-name="'ロン'" :action-name="'hule'" @action-by="mainActions.hule.huleActionHander(gameStore.getDapai!)" />
-        <PlayerActionView :condition="mainActions.hule.canMainRongHule.value"
-          :display-name="'×'" :action-name="'cancel'" @action-by="mainActions.hule.cancelRongHule"/>
-        <PlayerActionView  :condition="mainActions.hule.canMainZimoHule.value"
-          :display-name="'ツモ'" :action-name="'hule'"  @action-by="mainActions.hule.huleActionHander(gameStore.getZimopai!)"/>
-        <PlayerActionView  :condition="mainActions.fulou.canMainChi.value"
-          :display-name="'チー'" :action-name="'chi'"  @action-by="mainActions.fulou.fulouActionHandler('chi')" />
-        <PlayerActionView  :condition="mainActions.fulou.canMainPeng.value"
-          :display-name="'ポン'":action-name="'peng'" @action-by="mainActions.fulou.fulouActionHandler('peng')"/>
-        <PlayerActionView  :condition="mainActions.fulou.canMainMinggang.value"
-          :display-name="'カン'":action-name="'gang'"  @action-by="mainActions.fulou.fulouActionHandler('minggang')"/>
-        <PlayerActionView  :condition="mainActions.fulou.canMainFulou.value"
-          :display-name="'×'" :action-name="'cancel'"  @action-by="mainActions.fulou.cancelFulou" />
-        <PlayerActionView :condition="mainActions.lizhi.canLizhi.value"
-          :display-name="'リーチ'":action-name="'lizhi'"  @action-by="mainActions.lizhi.lizhiActionHandler"/>
+        <PlayerActionView :condition="mainActions.hule.canMainRongHule.value" :display-name="'ロン'" :action-name="'hule'"
+          @action-by="mainActions.hule.huleActionHander(gameStore.getDapai!)" />
+        <PlayerActionView :condition="mainActions.hule.canMainRongHule.value" :display-name="'×'"
+          :action-name="'cancel'" @action-by="mainActions.hule.cancelRongHule" />
+        <PlayerActionView :condition="mainActions.hule.canMainZimoHule.value" :display-name="'ツモ'" :action-name="'hule'"
+          @action-by="mainActions.hule.huleActionHander(gameStore.getZimopai!)" />
+        <PlayerActionView :condition="mainActions.fulou.canMainChi.value" :display-name="'チー'" :action-name="'chi'"
+          @action-by="mainActions.fulou.fulouActionHandler('chi')" />
+        <PlayerActionView :condition="mainActions.fulou.canMainPeng.value" :display-name="'ポン'" :action-name="'peng'"
+          @action-by="mainActions.fulou.fulouActionHandler('peng')" />
+        <PlayerActionView :condition="mainActions.fulou.canMainMinggang.value" :display-name="'カン'"
+          :action-name="'gang'" @action-by="mainActions.fulou.fulouActionHandler('minggang')" />
+        <PlayerActionView :condition="mainActions.fulou.canMainFulou.value" :display-name="'×'" :action-name="'cancel'"
+          @action-by="mainActions.fulou.cancelFulou" />
+        <PlayerActionView :condition="mainActions.lizhi.canLizhi.value" :display-name="'リーチ'" :action-name="'lizhi'"
+          @action-by="mainActions.lizhi.lizhiActionHandler" />
       </div>
       <div>
-        <PaiView :pai="(pai as Pai)" v-for="(pai, i) in s.bingpai" :key="pai.id"
-          @click="clickHandler({ dapaiIdx: i, dapai: pai as Pai })" :class="[
-            { 'clickable': dapaiPackage.canMainDapai.value && !mainActions.lizhi.isInSelectingLizhipai.value },
+        <PaiView :pai="pai" v-for="([pai,idx]) in s.getBingpai()" :key="pai.id" @click="() => {
+          if (mainActions.lizhi.isInSelectingLizhipai.value) mainActions.lizhi.selectLichipai({ dapaiIdx: idx, dapai: pai })
+          else if (mainActions.fulou.isInSelectingMenpai.value) mainActions.fulou.selectFuloupai({ dapaiIdx: idx, dapai: pai })
+          else if (mainActions.dapai.isSelectingMainDapai.value) mainActions.dapai.selectDapai({ dapaiIdx: idx, dapai: pai })
+        }" :class="[
+            { 'clickable': mainActions.dapai.isSelectingMainDapai.value && !mainActions.lizhi.isInSelectingLizhipai.value },
             { 'clickable': mainActions.fulou.isMenpaiCandidates(pai as Pai) },
             { 'clickable': mainActions.lizhi.isLizhipaiCandidates(pai as Pai) },
-            { 'dapai': dapaiPackage.selfDapaiIdx.value == i },
-            { 'not-candidates': mainActions.fulou.isInSelectingMenpai.value && !mainActions.fulou.isMenpaiCandidates(pai as Pai) && !mainActions.fulou.selectedFulouMenpaiIdx.value.includes(i) },
+            { 'dapai': mainActions.dapai.selfDapaiIdx.value == idx },
+            { 'zimo': idx==99 },
+            { 'not-candidates': mainActions.fulou.isInSelectingMenpai.value && !mainActions.fulou.isMenpaiCandidates(pai as Pai) && !mainActions.fulou.selectedFulouMenpaiIdx.value.includes(idx) },
             { 'not-candidates': mainActions.lizhi.isInSelectingLizhipai.value && !mainActions.lizhi.isLizhipaiCandidates(pai as Pai) },
-            { 'selected-menpais': mainActions.fulou.selectedFulouMenpaiIdx.value.includes(i) }
+            { 'selected-menpais': mainActions.fulou.selectedFulouMenpaiIdx.value.includes(idx) }
           ]" />
-        <PaiView v-if="s.zimopai" :pai="(s.zimopai as Pai)" :class="[
-          'zimo',
-          { 'clickable': dapaiPackage.canMainDapai.value },
-          { 'dapai': dapaiPackage.selfDapaiIdx.value == 99 },
-          { 'not-candidates': mainActions.lizhi.isInSelectingLizhipai.value && !mainActions.lizhi.isLizhipaiCandidates(s.zimopai as Pai) },
-          { 'clickable': mainActions.lizhi.isLizhipaiCandidates(s.zimopai as Pai) },
-        ]" @click="clickHandler({ dapaiIdx: 99, dapai: s.zimopai as Pai })" />
       </div>
     </div>
     <div class="fulou">
@@ -496,9 +467,13 @@ const mainActions = (() => {
   padding-left: 50px;
 }
 
-.not-candidates {
-    filter: grayscale(100%);
-    opacity: 0.6;
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.zimo {
+  padding-left: 10px;
 }
 
 .selected-menpais {
@@ -514,12 +489,21 @@ const mainActions = (() => {
   transform: translateY(-10px);
 }
 
-.hidden {
-  opacity: 0;
-  pointer-events: none;
+.unclickable {
+  transition: none;
+  cursor: default;
 }
 
-.zimo {
-  padding-left: 10px;
+.candidates {
+  transition: transform 0.3s ease;
+  cursor: pointer;
 }
+
+.not-candidates {
+    filter: grayscale(100%);
+    opacity: 0.6;
+}
+
+
+
 </style>
