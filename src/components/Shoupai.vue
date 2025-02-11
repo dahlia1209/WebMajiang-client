@@ -179,29 +179,31 @@ watch([() => gameStore.getAction], (
 
 //メインアクション関数
 const mainActions = (() => {
-  const dapaiPackage=(()=>{
-  const isSelectedDapai = ref(false)
-  const selfDapaiIdx = computed(() => _isSelfTurn ? gameStore.getDapaiIdx : null)
-  const selfDapai = computed(() => _isSelfTurn ? gameStore.getDapai : null)
-  const canMainDapai = computed(() => _isMainShoupai.value && _isSelfTurn.value && (["zimo", "fulou"] as PlayerAction[]).includes(gameStore.getAction as PlayerAction) && !isSelectedDapai.value)
-  const _mainDapai = (payload: { idx: number }) => {
-    isSelectedDapai.value = true
-    const dapai = payload.idx == 99 ? s.value.zimopai as Pai : s.value.bingpai[payload.idx] as Pai
-    wsStore.client.callbackMessage({ action: gameStore.getAction as PlayerAction, dapai: dapai, dapaiIdx: payload.idx, turn: gameStore.getTurn! })
-  }
-  const selectDapai = (payload: { dapai: Pai, dapaiIdx: number }) => {
+  //打牌アクション
+  const dapaiPackage = (() => {
+    const isSelectedDapai = ref(false)
+    const selfDapaiIdx = computed(() => _isSelfTurn ? gameStore.getDapaiIdx : null)
+    const selfDapai = computed(() => _isSelfTurn ? gameStore.getDapai : null)
+    const canMainDapai = computed(() => _isMainShoupai.value && _isSelfTurn.value && (["zimo", "fulou"] as PlayerAction[]).includes(gameStore.getAction as PlayerAction) && !isSelectedDapai.value)
+    const _mainDapai = (payload: { idx: number }) => {
+      isSelectedDapai.value = true
+      const dapai = payload.idx == 99 ? s.value.zimopai as Pai : s.value.bingpai[payload.idx] as Pai
+      wsStore.client.callbackMessage({ action: gameStore.getAction as PlayerAction, dapai: dapai, dapaiIdx: payload.idx, turn: gameStore.getTurn! })
+    }
+    const selectDapai = (payload: { dapai: Pai, dapaiIdx: number }) => {
       _mainDapai({ idx: payload.dapaiIdx })
-  }
+    }
 
-  return {
-    isSelectedDapai,
-    selfDapai,
-    selfDapaiIdx,
-    isSelectingMainDapai: canMainDapai,
-    selectDapai
-  }
-})()
+    return {
+      isSelectedDapai,
+      selfDapai,
+      selfDapaiIdx,
+      isInSelectingMainDapai: canMainDapai,
+      selectDapai
+    }
+  })()
 
+  //アガリアクション
   const hulePackage = (() => {
     const huleActionHander = (hule: Pai) => {
       // console.log("huleActionHander,hule",hule.serialize())
@@ -209,10 +211,10 @@ const mainActions = (() => {
     }
     const canMainZimoHule = computed(() => _isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getZimopai != null && gameStore.getHule.map(x => x.serialize(2)).includes(gameStore.getZimopai!.serialize(2)))
     const canMainRongHule = computed(() => !_isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getDapai != null && gameStore.getHule.map(x => x.serialize(2)).includes(gameStore.getDapai!.serialize(2)))
-    const cancelRongHule=()=>{
-      const action=gameStore.getAction
-      if (action==null)return
-      wsStore.client.callbackMessage({action:action,turn:gameStore.getTurn!})
+    const cancelRongHule = () => {
+      const action = gameStore.getAction
+      if (action == null) return
+      wsStore.client.callbackMessage({ action: action, turn: gameStore.getTurn! })
     }
 
     return {
@@ -223,6 +225,7 @@ const mainActions = (() => {
     }
   })()
 
+  //副露アクション
   const fulouPackage = (() => {
     const selectedFulou = ref<Fulou | null>(null)
     const selectedFulouMenpaiIdx = ref<number[]>([])
@@ -265,30 +268,30 @@ const mainActions = (() => {
     })
 
     const selectFuloupai = (payload: { dapai: Pai, dapaiIdx: number }) => {
-        if (isMenpaiCandidates(payload.dapai) && !selectedFulouMenpaiIdx.value.includes(payload.dapaiIdx)) {
-          selectedFulou.value!.menpais.push(payload.dapai)
-          selectedFulouMenpaiIdx.value.push(payload.dapaiIdx)
-        }
-        if (isInSelectingMenpai.value) {
-          return
-        } else {
-          wsStore.client.callbackMessage({ action: gameStore.getAction!, fulou: selectedFulou.value as Fulou })
-          selectedFulou.value = null
-          selectedFulouMenpaiIdx.value = []
-          return
-        }
+      if (isMenpaiCandidates(payload.dapai) && !selectedFulouMenpaiIdx.value.includes(payload.dapaiIdx)) {
+        selectedFulou.value!.menpais.push(payload.dapai)
+        selectedFulouMenpaiIdx.value.push(payload.dapaiIdx)
+      }
+      if (isInSelectingMenpai.value) {
+        return
+      } else {
+        wsStore.client.callbackMessage({ action: gameStore.getAction!, fulou: selectedFulou.value as Fulou })
+        selectedFulou.value = null
+        selectedFulouMenpaiIdx.value = []
+        return
+      }
     }
 
     const canMainFulou = computed(() => gameStore.getTurn == "shangjia" ? _canMainFulouofType(["chi", "peng", "minggang"]) : _canMainFulouofType(["peng", "minggang"]))
-    const canMainChi=computed(()=>gameStore.getTurn == "shangjia" && _canMainFulouofType(["chi"]) )
-    const canMainPeng=computed(()=>_canMainFulouofType(["peng"]) )
-    const canMainMinggang=computed(()=>_canMainFulouofType(["minggang"]) )
-    const cancelFulou=()=>{
-      mainActions.fulou.selectedFulou.value=null
-      mainActions.fulou.selectedFulouMenpaiIdx.value=[]
-      const action=gameStore.getAction
-      if (action==null)return
-      wsStore.client.callbackMessage({action:action,turn:gameStore.getTurn!})
+    const canMainChi = computed(() => gameStore.getTurn == "shangjia" && _canMainFulouofType(["chi"]))
+    const canMainPeng = computed(() => _canMainFulouofType(["peng"]))
+    const canMainMinggang = computed(() => _canMainFulouofType(["minggang"]))
+    const cancelFulou = () => {
+      mainActions.fulou.selectedFulou.value = null
+      mainActions.fulou.selectedFulouMenpaiIdx.value = []
+      const action = gameStore.getAction
+      if (action == null) return
+      wsStore.client.callbackMessage({ action: action, turn: gameStore.getTurn! })
     }
 
     return {
@@ -308,6 +311,7 @@ const mainActions = (() => {
     }
   })()
 
+  //立直アクション
   const lizhiPackage = (() => {
     const selectedLizhi = ref<Pai | null>(null)
     const isInSelectingLizhipai = computed(() => selectedLizhi.value != null && selectedLizhi.value.serialize() == "b0f")
@@ -351,6 +355,7 @@ const mainActions = (() => {
     }
   })();
 
+  //各アクションを返す
   return {
     hule: hulePackage,
     fulou: fulouPackage,
@@ -358,8 +363,6 @@ const mainActions = (() => {
     dapai:dapaiPackage
   }
 })()
-
-
 
 
 </script>
@@ -389,15 +392,19 @@ const mainActions = (() => {
         <PaiView :pai="pai" v-for="([pai,idx]) in s.getBingpai()" :key="pai.id" @click="() => {
           if (mainActions.lizhi.isInSelectingLizhipai.value) mainActions.lizhi.selectLichipai({ dapaiIdx: idx, dapai: pai })
           else if (mainActions.fulou.isInSelectingMenpai.value) mainActions.fulou.selectFuloupai({ dapaiIdx: idx, dapai: pai })
-          else if (mainActions.dapai.isSelectingMainDapai.value) mainActions.dapai.selectDapai({ dapaiIdx: idx, dapai: pai })
+          else if (mainActions.dapai.isInSelectingMainDapai.value) mainActions.dapai.selectDapai({ dapaiIdx: idx, dapai: pai })
         }" :class="[
-            { 'clickable': mainActions.dapai.isSelectingMainDapai.value && !mainActions.lizhi.isInSelectingLizhipai.value },
-            { 'clickable': mainActions.fulou.isMenpaiCandidates(pai as Pai) },
-            { 'clickable': mainActions.lizhi.isLizhipaiCandidates(pai as Pai) },
+            { 'clickable': [
+              mainActions.dapai.isInSelectingMainDapai.value && !mainActions.lizhi.isInSelectingLizhipai.value && !mainActions.fulou.isInSelectingMenpai.value,
+              mainActions.lizhi.isInSelectingLizhipai.value && mainActions.lizhi.isLizhipaiCandidates(pai),
+              mainActions.fulou.isInSelectingMenpai.value && mainActions.fulou.isMenpaiCandidates(pai),
+            ].includes(true) },
+            { 'not-candidates': [
+              mainActions.fulou.isInSelectingMenpai.value && !mainActions.fulou.isMenpaiCandidates(pai) && !mainActions.fulou.selectedFulouMenpaiIdx.value.includes(idx),
+              mainActions.lizhi.isInSelectingLizhipai.value && !mainActions.lizhi.isLizhipaiCandidates(pai) 
+            ].includes(true)},
             { 'dapai': mainActions.dapai.selfDapaiIdx.value == idx },
             { 'zimo': idx==99 },
-            { 'not-candidates': mainActions.fulou.isInSelectingMenpai.value && !mainActions.fulou.isMenpaiCandidates(pai as Pai) && !mainActions.fulou.selectedFulouMenpaiIdx.value.includes(idx) },
-            { 'not-candidates': mainActions.lizhi.isInSelectingLizhipai.value && !mainActions.lizhi.isLizhipaiCandidates(pai as Pai) },
             { 'selected-menpais': mainActions.fulou.selectedFulouMenpaiIdx.value.includes(idx) }
           ]" />
       </div>

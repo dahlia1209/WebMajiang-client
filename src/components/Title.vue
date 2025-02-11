@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useGameStore } from '@/stores/game'
 import { Settings, useSettings } from "@/models/settings";
-const gameStore = useGameStore()
 import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 
 const props = defineProps<{
     title: Settings,
 }>()
+
 const s = useSettings(props.title)
+const gameStore = useGameStore()
 
 const kaiju=()=>{
     s.value.mode=1
