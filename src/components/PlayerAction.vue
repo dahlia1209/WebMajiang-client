@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import { usePai, Pai,  } from '@/models/pai'
-import { Shoupai, useShoupai, type FulouType, Fulou } from "@/models/shoupai";
-import { type PlayerAction, type Position, type PaiSuit ,type HandlerType} from "@/models/type";
-import PaiView from '../components/Pai.vue'
-import BingpaiView from '../components/Bingpai.vue'
-import FulouView from '../components/Fulou.vue'
-import { useGameStore } from '@/stores/game'
-import { watchEffect, ref, watch, computed } from 'vue';
-import { useWebSocketStore } from '@/stores/websocket'
-import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 
 const props = defineProps<{
   condition:boolean,

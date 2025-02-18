@@ -3,13 +3,11 @@ import { usePai, Pai,  } from '@/models/pai'
 import { Shoupai, useShoupai, type FulouType, Fulou } from "@/models/shoupai";
 import { type PlayerAction, type Position, type PaiSuit,type HandlerType } from "@/models/type";
 import PaiView from '../components/Pai.vue'
-import BingpaiView from '../components/Bingpai.vue'
 import PlayerActionView from './PlayerAction.vue'
 import FulouView from '../components/Fulou.vue'
 import { useGameStore } from '@/stores/game'
 import { watchEffect, ref, watch, computed } from 'vue';
 import { useWebSocketStore } from '@/stores/websocket'
-import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
 
 const props = defineProps<{
   shoupai: Shoupai,
@@ -62,6 +60,7 @@ const _actionHandlers = (() => {
     const handlers = {
       mainSelfTurn: () => {
         if (selfZimopai.value == null) return
+        s.value.fulouCandidates = gameStore.getFulouCandidates
         if (mainActions.lizhi.isLizhi.value && !mainActions.hule.canMainZimoHule.value) {
           wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: gameStore.getTurn!, dapai: gameStore.getZimopai!, dapaiIdx: 99 })
           return
@@ -128,8 +127,14 @@ const _actionHandlers = (() => {
     const handlers = {
       mainSelfTurn: () => {
         const fulou = gameStore.getFulou
+        // console.log("_fulouHandler,mainSelfTurn,fulou",fulou?.serialize())
         if (fulou == null) return
         s.value.doFulou(fulou)
+        if (["angang","minggang","jiagang"].includes(fulou.type)){
+          wsStore.client.callbackMessage({ action: gameStore.getAction!, turn:gameStore.getTurn!,zimopai:Pai.deserialize("b0") })
+        }else{
+          s.value.fulouCandidates = gameStore.getFulouCandidates
+        }
       },
       mainOtherTurn: () => {
         // lipai()
@@ -164,19 +169,6 @@ const _actionHandlers = (() => {
 })()
 
 
-
-//ウォッチャー
-watch([() => gameStore.getAction], (
-  [currentStatus], [previousStatus]
-) => {
-  if (currentStatus == "qipai") _actionHandlers.qipai()
-  else if (currentStatus == "zimo") _actionHandlers.zimo()
-  else if (currentStatus == "dapai") _actionHandlers.dapai()
-  else if (currentStatus == "lizhi") _actionHandlers.lizhi()
-  else if (currentStatus == "fulou") _actionHandlers.fulou()
-})
-
-
 //メインアクション関数
 const mainActions = (() => {
   //打牌アクション
@@ -207,7 +199,7 @@ const mainActions = (() => {
   const hulePackage = (() => {
     const huleActionHander = (hule: Pai) => {
       // console.log("huleActionHander,hule",hule.serialize())
-      wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: "main", hule: hule })
+      wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: "main", hule: [hule] })
     }
     const canMainZimoHule = computed(() => _isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getZimopai != null && gameStore.getHule.map(x => x.serialize(2)).includes(gameStore.getZimopai!.serialize(2)))
     const canMainRongHule = computed(() => !_isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getDapai != null && gameStore.getHule.map(x => x.serialize(2)).includes(gameStore.getDapai!.serialize(2)))
@@ -230,62 +222,81 @@ const mainActions = (() => {
     const selectedFulou = ref<Fulou | null>(null)
     const selectedFulouMenpaiIdx = ref<number[]>([])
     const isMenpaiCandidates = (pai: Pai) => menpaiCandidates.value.includes(pai.serialize(2))
-    const _canMainFulouofType = (types: FulouType[]) => {
-      return (
-        props.position == 'main' &&
-        ((
-          types.filter(x => ["chi", "minggang", "peng"].includes(x)).length > 0 &&
-          gameStore.tajiaDapaiStatus() &&
-          s.value.getCandidatesbyType(types, dapaiPackage.selfDapai.value).length > 0
-        ) || (
-            types.filter(x => ["angang", "jiagang"].includes(x)).length > 0 &&
-            gameStore.mainZimoStatus &&
-            s.value.getCandidatesbyType(types).length > 0
-          ))
-      )
+    const hasFulouCandidates = (type: FulouType) => {
+      if (type=="chi") return gameStore.getTurn=="shangjia" && gameStore.getDapai!=null && s.value.getFulouCandidates("chi", gameStore.getDapai).length > 0
+      else if (type=="peng") return gameStore.getTurn!="main" &&gameStore.getDapai!=null &&  s.value.getFulouCandidates("peng", gameStore.getDapai).length > 0
+      else if (type=="minggang") return gameStore.getTurn!="main" && gameStore.getDapai!=null && s.value.getFulouCandidates("minggang", gameStore.getDapai).length > 0
+      else if (type=="angang") return gameStore.getTurn=="main" && s.value.getFulouCandidates("angang").length > 0
+      else if (type=="jiagang") return gameStore.getTurn=="main" && s.value.getFulouCandidates("jiagang").length > 0
+      else throw Error(`指定された副露はありません,fuloutype:${type}`)
     }
+    
     const fulouActionHandler = (type: FulouType) => {
-      if (type == "minggang") {
-        const fuloupai = gameStore.getDapai
-        const fulouCandidates = s.value.getCandidatesbyType(["minggang"], fuloupai)
-        const fulou = new Fulou("minggang", fuloupai, fulouCandidates[0].menpais, gameStore.getTurn)
-        wsStore.client.callbackMessage({ action: "dapai", fulou: fulou })
-      }
-      else if (type == "peng" || type == "chi") {
+      const commonProcess=()=>{
         selectedFulou.value = new Fulou(type, gameStore.getDapai, [], gameStore.getTurn)
       }
+      const jiagangProcess=()=>{
+        selectedFulou.value = new Fulou(type, null, [], null)
+      }
+      if (type=="chi")commonProcess()
+      else if (type=="peng")commonProcess()
+      else if (type=="minggang")commonProcess()
+      else if (type=="angang")commonProcess()
+      else if (type=="jiagang")jiagangProcess()
+    }
+    
+    const _getMenpaiNum=(type:FulouType)=>{
+      if (type=="jiagang" ) return 1
+      else if (type=="chi"|| type=="peng") return 2
+      else if (type=="minggang" ) return 3
+      else if (type=="angang" ) return 4
+      else throw Error(`副露の種類が正しくありません。type:${type}`)
     }
 
-    const isInSelectingMenpai = computed(() => selectedFulou.value != null && selectedFulou.value.menpais.length < 2 && ["chi", "peng"].includes(selectedFulou.value.type))
+    const isInSelectingMenpai = computed(() => selectedFulou.value != null && [ 
+      selectedFulou.value.menpais.length < _getMenpaiNum(selectedFulou.value.type) ,
+      ["chi", "peng","angang","jiagang","minggang"].includes(selectedFulou.value.type)
+    ].every(x=>x==true))
+
     const menpaiCandidates = computed(() => {
       if (isInSelectingMenpai.value) {
-        return s.value.fulouCandidates
-          .filter(x => x.type == selectedFulou.value?.type && x.fuloupai?.serialize(2) == selectedFulou.value?.fuloupai?.serialize(2))
-          .filter(x => selectedFulou.value!.menpais.length == 1 ? x.menpais[0].serialize(2) == selectedFulou.value!.menpais[0].serialize(2) : true)
-          .map(x => x.menpais[selectedFulou.value!.menpais.length].serialize(2))
+        return [
+          ...s.value.fulouCandidates
+            .filter(x => x.type == selectedFulou.value?.type)
+            .filter(x => selectedFulou.value!.fuloupai ? x.fuloupai!.serialize(2) == selectedFulou.value!.fuloupai.serialize(2):true) //副露牌があれば副露牌が一致するものでフィルター
+            .filter(x => selectedFulou.value!.menpais.length > 0 ? x.menpais[selectedFulou.value!.menpais.length-1].serialize(2) == selectedFulou.value!.menpais[selectedFulou.value!.menpais.length-1].serialize(2) : true) //2枚目以降の自牌選択であればフィルターする
+            .map(x => x.menpais[selectedFulou.value!.menpais.length].serialize(2))
+        ]
       }
       return []
     })
 
     const selectFuloupai = (payload: { dapai: Pai, dapaiIdx: number }) => {
-      if (isMenpaiCandidates(payload.dapai) && !selectedFulouMenpaiIdx.value.includes(payload.dapaiIdx)) {
-        selectedFulou.value!.menpais.push(payload.dapai)
-        selectedFulouMenpaiIdx.value.push(payload.dapaiIdx)
+      //サブ関数
+      const _jiagangUpdate=()=>{
+        const fuloupaistr=selectedFulou.value!.menpais[0].serialize()
+        selectedFulou.value!.menpais=[0,1].map(_=>Pai.deserialize(fuloupaistr))
+        selectedFulou.value!.fuloupai=Pai.deserialize(fuloupaistr)
       }
-      if (isInSelectingMenpai.value) {
-        return
-      } else {
-        wsStore.client.callbackMessage({ action: gameStore.getAction!, fulou: selectedFulou.value as Fulou })
+      const _updateSelectedFulou = () => {
+        if (isMenpaiCandidates(payload.dapai) && !selectedFulouMenpaiIdx.value.includes(payload.dapaiIdx)) {
+          selectedFulou.value!.menpais.push(payload.dapai)
+          selectedFulouMenpaiIdx.value.push(payload.dapaiIdx)
+          if(selectedFulou.value!.type=="jiagang") _jiagangUpdate()
+        }
+      }
+      const _callback=()=>{
+        wsStore.client.callbackMessage({ action: gameStore.getAction!, fulou: selectedFulou.value as Fulou,turn:gameStore.getTurn! })
         selectedFulou.value = null
         selectedFulouMenpaiIdx.value = []
-        return
       }
+
+      //メイン処理
+      _updateSelectedFulou()
+      if (!isInSelectingMenpai.value) _callback()
     }
 
-    const canMainFulou = computed(() => gameStore.getTurn == "shangjia" ? _canMainFulouofType(["chi", "peng", "minggang"]) : _canMainFulouofType(["peng", "minggang"]))
-    const canMainChi = computed(() => gameStore.getTurn == "shangjia" && _canMainFulouofType(["chi"]))
-    const canMainPeng = computed(() => _canMainFulouofType(["peng"]))
-    const canMainMinggang = computed(() => _canMainFulouofType(["minggang"]))
+    const canMainFulou = computed(() => ["chi", "peng", "minggang"].some(a=>hasFulouCandidates(a as FulouType)))
     const cancelFulou = () => {
       mainActions.fulou.selectedFulou.value = null
       mainActions.fulou.selectedFulouMenpaiIdx.value = []
@@ -297,17 +308,14 @@ const mainActions = (() => {
     return {
       selectedFulou,
       selectedFulouMenpaiIdx,
-      _canMainFulouofType,
+      hasFulouCandidates,
       fulouActionHandler,
       selectFuloupai,
       isMenpaiCandidates,
       canMainFulou,
       isInSelectingMenpai,
       menpaiCandidates,
-      canMainChi,
-      canMainPeng,
       cancelFulou,
-      canMainMinggang,
     }
   })()
 
@@ -325,7 +333,7 @@ const mainActions = (() => {
     const selectLichipai = (payload: { dapai: Pai, dapaiIdx: number }) => {
         if (isLizhipaiCandidates(payload.dapai)) {
           selectedLizhi.value = payload.dapai
-          wsStore.client.callbackMessage({ action: gameStore.getAction!, lizhipai: selectedLizhi.value as Pai, dapaiIdx: payload.dapaiIdx, turn: gameStore.getTurn! })
+          wsStore.client.callbackMessage({ action: gameStore.getAction!,dapai:payload.dapai,  dapaiIdx: payload.dapaiIdx,lizhipai: [selectedLizhi.value as Pai], turn: gameStore.getTurn! })
           return
         }
         return
@@ -365,6 +373,17 @@ const mainActions = (() => {
 })()
 
 
+//ウォッチャー
+watch([() => gameStore.getAction], (
+  [currentStatus], [previousStatus]
+) => {
+  if (currentStatus == "qipai") _actionHandlers.qipai()
+  else if (currentStatus == "zimo") _actionHandlers.zimo()
+  else if (currentStatus == "dapai") _actionHandlers.dapai()
+  else if (currentStatus == "lizhi") _actionHandlers.lizhi()
+  else if (currentStatus == "fulou") _actionHandlers.fulou()
+})
+
 </script>
 
 <template>
@@ -377,14 +396,18 @@ const mainActions = (() => {
           :action-name="'cancel'" @action-by="mainActions.hule.cancelRongHule" />
         <PlayerActionView :condition="mainActions.hule.canMainZimoHule.value" :display-name="'ツモ'" :action-name="'hule'"
           @action-by="mainActions.hule.huleActionHander(gameStore.getZimopai!)" />
-        <PlayerActionView :condition="mainActions.fulou.canMainChi.value" :display-name="'チー'" :action-name="'chi'"
+        <PlayerActionView :condition="mainActions.fulou.hasFulouCandidates('chi')" :display-name="'チー'" :action-name="'chi'"
           @action-by="mainActions.fulou.fulouActionHandler('chi')" />
-        <PlayerActionView :condition="mainActions.fulou.canMainPeng.value" :display-name="'ポン'" :action-name="'peng'"
+        <PlayerActionView :condition="mainActions.fulou.hasFulouCandidates('peng')" :display-name="'ポン'" :action-name="'peng'"
           @action-by="mainActions.fulou.fulouActionHandler('peng')" />
-        <PlayerActionView :condition="mainActions.fulou.canMainMinggang.value" :display-name="'カン'"
+        <PlayerActionView :condition="mainActions.fulou.hasFulouCandidates('minggang')" :display-name="'カン'"
           :action-name="'gang'" @action-by="mainActions.fulou.fulouActionHandler('minggang')" />
         <PlayerActionView :condition="mainActions.fulou.canMainFulou.value" :display-name="'×'" :action-name="'cancel'"
           @action-by="mainActions.fulou.cancelFulou" />
+        <PlayerActionView :condition="mainActions.fulou.hasFulouCandidates('angang') " :display-name="'暗カン'"
+          :action-name="'gang'" @action-by="mainActions.fulou.fulouActionHandler('angang')" />
+        <PlayerActionView :condition="mainActions.fulou.hasFulouCandidates('jiagang') " :display-name="'加カン'"
+          :action-name="'gang'" @action-by="mainActions.fulou.fulouActionHandler('jiagang')" />
         <PlayerActionView :condition="mainActions.lizhi.canLizhi.value" :display-name="'リーチ'" :action-name="'lizhi'"
           @action-by="mainActions.lizhi.lizhiActionHandler" />
       </div>
@@ -501,10 +524,6 @@ const mainActions = (() => {
   cursor: default;
 }
 
-.candidates {
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
 
 .not-candidates {
     filter: grayscale(100%);

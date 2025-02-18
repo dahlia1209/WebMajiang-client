@@ -8,10 +8,10 @@ import WebsocketHandler from './WebsocketHandler.vue'
 import { usePai, Pai } from '@/models/pai'
 import { type PaiSuit, type PlayerAction, type Position } from "@/models/type"
 import { Shoupai, createPais, Fulou } from "@/models/shoupai";
-import { Board, GameStatus, useBoard } from "@/models/board";
+import { Board, useBoard } from "@/models/board";
+import { WebSocketMsg,GameContentFormat } from "@/models/websocket";
 import { He } from "@/models/he";
 import { Score } from "@/models/score";
-import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty,validateDapai } from "@/services/webSocketService";
 import { useGameStore } from '@/stores/game'
 import { useWebSocketStore } from '@/stores/websocket'
 

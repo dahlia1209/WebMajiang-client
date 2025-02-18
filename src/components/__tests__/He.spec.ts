@@ -6,7 +6,8 @@ import HeView from "../He.vue";
 import { useGameStore } from "@/stores/game";
 import { setActivePinia, createPinia } from "pinia";
 import { Shoupai, Fulou, createPais } from "@/models/shoupai";
-import { Board, GameStatus } from "@/models/board";
+import { Board,  } from "@/models/board";
+import { WebSocketMsg,GameContentFormat } from "@/models/websocket";
 
 describe("He", () => {
   let wrapper;
@@ -56,19 +57,19 @@ describe("He", () => {
         position: "main",
       },
     });
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:0});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(1);
     expect(wrapper.findAllComponents("img")[0].attributes("name")).toBe("m1");
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "zimo", turn: "main",zimopai:new Pai("m", 2)});
+    gameStore.game=GameContentFormat.create({ action: "zimo", turn: "main",zimopai:new Pai("m", 2)});
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 2),dapaiIdx:99});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 2),dapaiIdx:99});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(2);
     expect(wrapper.findAllComponents("img")[1].attributes("name")).toBe("m2");
     //次手番のダパイでは捨て牌に表示されない
-    gameStore.game=new GameStatus({ action: "dapai", turn: "xiajia",dapai:new Pai("m", 1),dapaiIdx:99});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "xiajia",dapai:new Pai("m", 1),dapaiIdx:99});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(2);
 
@@ -79,17 +80,17 @@ describe("He", () => {
         position: "duimian",
       },
     });
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:99});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:99});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(0);
-    gameStore.game=new GameStatus({ action: "zimo", turn: "main",zimopai:new Pai("m", 2)});
+    gameStore.game=GameContentFormat.create({ action: "zimo", turn: "main",zimopai:new Pai("m", 2)});
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 2),dapaiIdx:99});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 2),dapaiIdx:99});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(0);
-    gameStore.game=new GameStatus({ action: "zimo", turn: "duimian",zimopai:new Pai("m", 3)});
+    gameStore.game=GameContentFormat.create({ action: "zimo", turn: "duimian",zimopai:new Pai("m", 3)});
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "dapai", turn: "duimian",dapai:new Pai("m", 3),dapaiIdx:99});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "duimian",dapai:new Pai("m", 3),dapaiIdx:99});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(1);
     expect(wrapper.findAllComponents("img")[0].attributes("name")).toBe("m3");
@@ -103,22 +104,22 @@ describe("He", () => {
         position: "main",
       },
     });
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:0});
     await flushPromises();
     //下家にチーされた
-    gameStore.game=new GameStatus({ action: "fulou", turn: "xiajia",fulou:Fulou.deserialize("chi,m1,m2+m3,main")});
+    gameStore.game=GameContentFormat.create({ action: "fulou", turn: "xiajia",fulou:Fulou.deserialize("chi,m1,m2+m3,main")});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(0);
-    gameStore.game=new GameStatus({ action: "dapai", turn: "xiajia",dapai:new Pai("m", 2),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "xiajia",dapai:new Pai("m", 2),dapaiIdx:0});
     await flushPromises();
     //対面チー
-    gameStore.game=new GameStatus({ action: "fulou", turn: "duimian",fulou:Fulou.deserialize("chi,m2,m3+m4,xiajia")});
+    gameStore.game=GameContentFormat.create({ action: "fulou", turn: "duimian",fulou:Fulou.deserialize("chi,m2,m3+m4,xiajia")});
     expect(wrapper.findAllComponents("img").length).toBe(0);
-    gameStore.game=new GameStatus({ action: "dapai", turn: "duimian",dapai:new Pai("m", 3),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "duimian",dapai:new Pai("m", 3),dapaiIdx:0});
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "fulou", turn: "main",fulou:Fulou.deserialize("peng,m3,m3+m3,dumian")});
+    gameStore.game=GameContentFormat.create({ action: "fulou", turn: "main",fulou:Fulou.deserialize("peng,m3,m3+m3,dumian")});
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 4),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 4),dapaiIdx:0});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(1);
 
@@ -133,20 +134,20 @@ describe("He", () => {
         position: "main",
       },
     });
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 1),dapaiIdx:0});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(1);
     console.log(wrapper.findAllComponents("img")[0].html())
     //リーチ
-    gameStore.game=new GameStatus();
+    gameStore.game=GameContentFormat.create();
     await flushPromises();
-    gameStore.game=new GameStatus({ action: "lizhi", turn: "main",dapai:new Pai("m", 2),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "lizhi", turn: "main",dapai:new Pai("m", 2),dapaiIdx:0});
     await flushPromises();
     console.log(wrapper.findAllComponents("img")[0].html())
     expect(wrapper.findAllComponents("img").length).toBe(2);
     expect(wrapper.findAllComponents("img")[1].classes("roated")).toBe(true);
     //下家にリーチ牌をチーされた
-    gameStore.game.dapai = null;
+    gameStore.game.dapai = undefined;
     gameStore.game.turn = "xiajia";
     // gameStore.game.status = "ready";
     gameStore.game.action = "fulou";
@@ -159,19 +160,19 @@ describe("He", () => {
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(1);
     //次のダパイで横に曲げる
-    gameStore.game.fulou =null
+    gameStore.game.fulou =undefined
     gameStore.game.turn = "main";
     gameStore.game.action = "dapai";
     // gameStore.game.status = "ready";
     gameStore.game.dapai = new Pai("m", 3);
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 3),dapaiIdx:0});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 3),dapaiIdx:0});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(2);
     expect(wrapper.findAllComponents("img")[1].classes("roated")).toBe(true);
-    gameStore.game=new GameStatus({ action: "zimo", turn: "main",zimopai:new Pai("m", 4)});
+    gameStore.game=GameContentFormat.create({ action: "zimo", turn: "main",zimopai:new Pai("m", 4)});
     await flushPromises();
     //次のダパイでは通常通り
-    gameStore.game=new GameStatus({ action: "dapai", turn: "main",dapai:new Pai("m", 4),dapaiIdx:99});
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "main",dapai:new Pai("m", 4),dapaiIdx:99});
     await flushPromises();
     expect(wrapper.findAllComponents("img").length).toBe(3);
     expect(wrapper.findAllComponents("img")[2].classes("roated")).toBe(false);

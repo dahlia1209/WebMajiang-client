@@ -13,10 +13,10 @@ describe("useGameStore", () => {
   });
   it("useGameStore init", () => {
     const gameStore = useGameStore();
-    expect(gameStore.game.action).toBe(null);
-    expect(gameStore.game.dapai).toBe(null);
+    expect(gameStore.game.action).toBe(undefined);
+    expect(gameStore.game.dapai).toBe(undefined);
     // expect(gameStore.game.status).toBe(null);
-    expect(gameStore.game.turn).toBe(null);
+    expect(gameStore.game.turn).toBe(undefined);
     // expect(gameStore.game.canFulouList).toStrictEqual([]);
     gameStore.game.action = "zimo";
     const zimo = new Pai("m", 1);

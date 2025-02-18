@@ -18,3 +18,5 @@ export type PlayerAction =
 export type Feng = "東" | "南" | "西" | "北";
 
 export type HandlerType = 'mainSelfTurn' | 'mainOtherTurn' | 'tajiaSelfTurn' | 'tajiaOtherTurn';
+
+export type MessageType='game'|'score'|'message'

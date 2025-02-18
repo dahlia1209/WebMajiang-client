@@ -5,12 +5,11 @@ import { Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
 import { Settings } from "@/models/settings";
 import { Score } from "@/models/score";
-import { Board, GameStatus } from "@/models/board";
-import { MessageType, useWebSocketService, type WebSocketMessage, type callbackProperty } from "@/services/webSocketService";
+import { WebSocketMsg,GameContentFormat,ScoreContent } from "@/models/websocket";
 
 export const useGameStore = defineStore("game", {
   state: () => ({
-    game: new GameStatus(),
+    game: new GameContentFormat(),
     score: new Score(),
     settings: new Settings(),
   }),
@@ -22,39 +21,18 @@ export const useGameStore = defineStore("game", {
         state.game.zimopai !=null
       );
     },
-    getDapai:(state)=>{
-      return state.game.dapai ==null ? null : Pai.deserialize(state.game.dapai.serialize())
-    },
-    getHule:(state)=>{
-      return state.game.hule.map(x=>Pai.deserialize(x.serialize()))
-    },
-    getZimopai:(state)=>{
-      return state.game.zimopai ==null ? null : Pai.deserialize(state.game.zimopai.serialize())
-    },
-    getLizhipai:(state)=>{
-      return state.game.lizhipai.map(x=>Pai.deserialize(x.serialize()))
-    },
-    getFulou:(state)=>{
-      return state.game.fulou ==null ? null : Fulou.deserialize(state.game.fulou.serialize())
-    },
-    getQipai:(state)=>{
-      return state.game.qipai.length>0 ? state.game.qipai.map(x=>Pai.deserialize(x.serialize())):[]
-    },
-    getDapaiIdx:(state)=>{
-      return state.game.dapaiIdx
-    },
-    getAction:(state)=>{
-      return state.game.action
-    },
-    getTurn:(state)=>{
-      return state.game.turn
-    },
-    getFulouCandidates:(state)=>{
-      return state.game.fulouCandidates.length>0 ? state.game.fulouCandidates.map(x=>Fulou.deserialize(x.serialize())):[]
-    },
-    getScore:(state)=>{
-      return new Score({baopai:state.score.baopai as Pai[]})
-    },
+    getDapai:(state)=>state.game.dapai ==null ? null : Pai.deserialize(state.game.dapai.serialize()),
+    getHule:(state)=> state.game.hule.map(x=>Pai.deserialize(x.serialize())),
+    getZimopai:(state)=>state.game.zimopai ==null ? null : Pai.deserialize(state.game.zimopai.serialize()),
+    getLizhipai:(state)=> state.game.lizhipai.map(x=>Pai.deserialize(x.serialize())),
+    getFulou:(state)=>state.game.fulou ==null ? null : Fulou.deserialize(state.game.fulou.serialize()),
+    getQipai:(state)=>state.game.qipai.map(x=>Pai.deserialize(x.serialize())),
+    getDapaiIdx:(state)=>state.game.dapaiIdx,
+    getAction:(state)=>state.game.action,
+    getTurn:(state)=>state.game.turn,
+    getFulouCandidates:(state)=>state.game.fulouCandidates.map(x=>Fulou.deserialize(x.serialize())),
+    getScore:(state)=>new Score({baopai:state.score.baopai as Pai[]}),
+    getBaopai:(state)=>state.game.baopai ==null ? null : Pai.deserialize(state.game.baopai.serialize()),
   },
   actions: {
     zimoStatusa (position?: Position) {

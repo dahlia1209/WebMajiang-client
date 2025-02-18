@@ -5,13 +5,9 @@ import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "
 import { Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
 import { GameStatus } from "@/models/board";
+import { WebSocketMsg } from "@/models/websocket";
 import {
   useWebSocketService,
-  type SimpleMessage,
-  MessageType,
-  type WebSocketMessage,
-  type ScoreMessage,
-  type GameMessage,
 } from "@/services/webSocketService";
 
 describe("useWebSocketService", () => {
@@ -22,15 +18,16 @@ describe("useWebSocketService", () => {
     // const spyb = vi.spyOn(client, "handleWebSocketMessage");
     const ma = new MessageEvent("message", {
       data: JSON.stringify({
-        type: MessageType.Message,
-        msg: "I'm mocked message",
-      } as SimpleMessage),
+        type: "game",
+        game: {
+          action:"qipai"
+        },
+      } as WebSocketMsg),
     });
     client.handleWebSocketMessage(ma);
-    expect(client.messages.value.length).toBe(1);
-    expect(client.messages.value[0].type).toBe(MessageType.Message);
-    expect((client.messages.value[0] as SimpleMessage).type).toBe(MessageType.Message);
-    expect((client.messages.value[0] as SimpleMessage).msg).toBe("I'm mocked message");
+    expect(client.msgs.value.length).toBe(1);
+    expect(client.msgs.value[0].type).toBe("game");
+    expect(client.msgs.value[0].game?.action).toBe("qipai");
 
     //
     // const mb = new MessageEvent("message", {
@@ -53,21 +50,21 @@ describe("useWebSocketService", () => {
     // expect((client.messages.value[1] as ActionMessage).turn).toBe("duimian");
     const mb = new MessageEvent("message", {
       data: JSON.stringify({
-        type: MessageType.Game,
-        game: { action: "dapai", turn: "main", status: "ready", dapai: "m1" },
+        type: "game",
+        game: { action: "dapai", turn: "main", status: "ready", dapai: "m1,99" },
       }),
     });
     client.handleWebSocketMessage(mb);
-    expect(client.messages.value.length).toBe(2);
-    const mbr = client.messages.value[1] as GameMessage;
-    expect(mbr.type).toBe(MessageType.Game);
-    expect(mbr.game.action).toBe("dapai");
-    expect(mbr.game.turn).toBe("main");
-    expect(mbr.game.dapai).toStrictEqual("m1");
+    expect(client.msgs.value.length).toBe(2);
+    const mbr = client.msgs.value[1] as WebSocketMsg;
+    expect(mbr.type).toBe("game");
+    expect(mbr.game!.action).toBe("dapai");
+    expect(mbr.game!.turn).toBe("main");
+    expect(mbr.game!.dapai).toStrictEqual("m1,99");
 
     const mc = new MessageEvent("message", {
       data: JSON.stringify({
-        type: MessageType.Score,
+        type: "score",
         score: {
           zhuangfeng: "東",
           menfeng: "東",
@@ -76,16 +73,17 @@ describe("useWebSocketService", () => {
           changbang: 3,
           defen: [25000, 25000, 25000, 25000],
         },
-      } as ScoreMessage),
+      } as WebSocketMsg),
     });
     client.handleWebSocketMessage(mc);
-    expect(client.messages.value.length).toBe(3);
-    expect((client.messages.value[2] as ScoreMessage).type).toBe(MessageType.Score);
-    expect((client.messages.value[2] as ScoreMessage).score.zhuangfeng).toBe("東");
-    expect((client.messages.value[2] as ScoreMessage).score.menfeng).toBe("東");
-    expect((client.messages.value[2] as ScoreMessage).score.jushu).toBe(1);
-    expect((client.messages.value[2] as ScoreMessage).score.jicun).toBe(2);
-    expect((client.messages.value[2] as ScoreMessage).score.changbang).toBe(3);
-    expect((client.messages.value[2] as ScoreMessage).score.defen).toStrictEqual([25000, 25000, 25000, 25000]);
+    expect(client.msgs.value.length).toBe(3);
+    expect((client.msgs.value[2] ).type).toBe("score");
+    expect((client.msgs.value[2] ).score!=null).toBe(true);
+    expect((client.msgs.value[2] ).score!.zhuangfeng).toBe("東");
+    expect((client.msgs.value[2] ).score!.menfeng).toBe("東");
+    expect((client.msgs.value[2] ).score!.jushu).toBe(1);
+    expect((client.msgs.value[2] ).score!.jicun).toBe(2);
+    expect((client.msgs.value[2] ).score!.changbang).toBe(3);
+    expect((client.msgs.value[2] ).score!.defen).toStrictEqual([25000, 25000, 25000, 25000]);
   });
 });

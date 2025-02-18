@@ -19,7 +19,7 @@ const myXiajia=(pos :Position)=>{
 }
 
 const f = useFulou(props.fulou)
-const pais=f.value.menpais
+const pais=f.value.menpais.map(x=>x)
 const key = (function () {
     if (props.position==f.value.position ) {
         return -1

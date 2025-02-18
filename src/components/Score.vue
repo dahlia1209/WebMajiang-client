@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePai, type Pai } from '@/models/pai'
+import { usePai, Pai } from '@/models/pai'
 import { Score, useScore } from "@/models/score";
 import { type PlayerAction, type Position } from "@/models/type";
 import PaiView from '../components/Pai.vue'
@@ -24,6 +24,7 @@ watchEffect(()=>{
     s.value.paishu=gameStore.score.paishu
     s.value.defen=gameStore.score.defen
     s.value.menfeng=gameStore.score.menfeng
+    if (gameStore.getBaopai) s.value.baopai[s.value.baopai.filter(x=>x.serialize(2)!="b0").length]=gameStore.getBaopai
 })
 
 watch([
