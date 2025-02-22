@@ -14,13 +14,6 @@ export const useGameStore = defineStore("game", {
     settings: new Settings(),
   }),
   getters: {
-    mainZimoStatus: (state) => {
-      return (
-        state.game.action == "zimo" && 
-        state.game.turn == "main" &&
-        state.game.zimopai !=null
-      );
-    },
     getDapai:(state)=>state.game.dapai ==null ? null : Pai.deserialize(state.game.dapai.serialize()),
     getHule:(state)=> state.game.hule.map(x=>Pai.deserialize(x.serialize())),
     getZimopai:(state)=>state.game.zimopai ==null ? null : Pai.deserialize(state.game.zimopai.serialize()),
@@ -35,43 +28,6 @@ export const useGameStore = defineStore("game", {
     getBaopai:(state)=>state.game.baopai ==null ? null : Pai.deserialize(state.game.baopai.serialize()),
   },
   actions: {
-    zimoStatusa (position?: Position) {
-      return (
-        this.game.action == "zimo" && 
-        this.game.zimopai !=null &&
-        (this.game.turn == position || position==null)
-      );
-    },
-    fulouStatusa (position?: Position) {
-      return (
-        this.game.action == "fulou" && 
-        this.game.fulou !=null &&
-        (this.game.turn == position || position==null)
-        // state.game.status == "thinking"
-      );
-    },
-    canLipai(position: Position) {
-      // if (position == "main") return this.zimoStatus("xiajia") || this.fulouStatus()
-      if (position == "main") return this.game.turn == "xiajia" && this.game.action == "zimo"
-      else if (position == "xiajia") return this.game.turn == "duimian" && this.game.action == "zimo";
-      else if (position == "duimian") return this.game.turn == "shangjia" && this.game.action == "zimo";
-      else return this.game.turn == "main" && this.game.action == "zimo";
-    },
-    recievedZimopai(position: Position) {
-      return (
-        this.game.action == "zimo" &&
-        // this.game.status == "thinking" &&
-        this.game.turn == position &&
-        this.game.zimopai != null
-      );
-    },
-    tajiaDapaiStatus(position?: Position) {
-      return (
-        (this.game.action == "dapai" || this.game.action == "lizhi") &&
-        this.game.dapai != null && this.game.dapaiIdx!=null &&
-        (this.game.turn == position || position==null)
-      );
-    },
     isLizhi(position: Position) {
       return (
         this.game.action == "lizhi" &&
@@ -79,29 +35,6 @@ export const useGameStore = defineStore("game", {
         this.game.turn == position &&
         this.game.dapai != null
       );
-    },
-    tajiaFulouToMe(position: Position) {
-      return (
-        this.game.action == "fulou" &&
-        // this.game.status == "ready" &&
-        this.game.turn != position &&
-        this.game.fulou != null &&
-        (this.game.fulou.type == "chi" || this.game.fulou.type == "peng" || this.game.fulou.type == "minggang") &&
-        this.game.fulou.position == position
-      );
-    },
-    doneFulou(position: Position) {
-      return (
-        this.game.action == "fulou" &&
-        // this.game.status == "ready" &&
-        this.game.turn == position &&
-        this.game.fulou != null
-      );
-    },
-    doneZimo(position?: Position) {
-      return (this.game.action == "zimo" && 
-        // this.game.status == "ready" && 
-        position) ? this.game.turn == position : true;
     },
 
   },

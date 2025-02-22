@@ -6,7 +6,6 @@ import ShoupaiView from "../Shoupai.vue";
 import { createTestingPinia } from "@pinia/testing";
 import { useGameStore } from "@/stores/game";
 import { setActivePinia, createPinia } from "pinia";
-import { Board, GameStatus } from "@/models/board";
 import { GameContent, GameContentFormat } from "@/models/websocket";
 
 describe("Shoupai", () => {
@@ -60,7 +59,6 @@ describe("Shoupai", () => {
     gameStore.game=GameContentFormat.create({ action: "zimo", turn: "main",zimopai:new Pai("z", 1)});
     await flushPromises();
     //手牌選択
-    expect(gameStore.mainZimoStatus).toBe(true)
     console.log(wrapper.findAllComponents("img")[0].classes());
     expect(wrapper.findAllComponents("img")[0].classes("clickable")).toBe(true);
     await wrapper.findAllComponents("img")[0].trigger("click");
@@ -218,4 +216,26 @@ describe("Shoupai", () => {
     // expect(wrapper.find(".bingpai").findAll("img").length).toBe(10);
     // expect(wrapper.find(".fulou").findAll(".mianzi").length).toBe(1);
   });
+  it("tingpaibuqing", async () => {
+    const gameStore = useGameStore();
+    // let bingpai: Pai[] = createPais(["8m", "9m", "1m", "1m", "5s", "5s", "5s", "7z", "7z", "7z", "7z"]);
+    let bingpai: Pai[] = ["m1", "m1", "m1", "m3", "m4", "m5", "p2", "p3", "p4", "p7", "p7","s5","s6"].map(x=>Pai.deserialize(x));
+    let fulou: Fulou[] = [];
+    let zimopai: Pai | null = null;
+    let shoupai: Shoupai = new Shoupai(bingpai, zimopai, fulou);
+
+    //フリテン
+    wrapper = mount(ShoupaiView, {
+      props: { shoupai: shoupai, position: "main" },
+    });
+    gameStore.game=GameContentFormat.create({ action: "dapai", turn: "shangjia",dapai:new Pai("s", 7),dapaiIdx:0,hule:["s4","s7","b0"].map(x=>Pai.deserialize(x))});
+    await flushPromises();
+    expect(wrapper.findAll("button").length).toBe(2);
+    expect(wrapper.findAll("button")[0].text()).toBe("ロン");
+    expect(wrapper.findAll("button")[1].text()).toBe("×");
+    await wrapper.findAll("button")[0].trigger("click");
+    expect(wrapper.find(".tingpaibuqing-message").text()).toBe("フリテンです");
+    await wrapper.findAll("button")[1].trigger("click");
+    expect(wrapper.find(".tingpaibuqing-message").text()).toBe("");
+  })
 });

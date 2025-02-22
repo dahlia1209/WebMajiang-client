@@ -198,7 +198,6 @@ export class Shoupai {
       angang:() =>this._processFulouCommon(fulou),
       jiagang:() =>this._processJiagang(fulou),
     }
-    // if (this.fulou.length>0)console.log("doFulou,this.fulou[1].serialize",this.fulou[0].serialize())
     processes[fulou.type]();
 
   }

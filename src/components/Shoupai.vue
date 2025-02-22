@@ -38,6 +38,7 @@ const _actionHandlers = (() => {
       mainSelfTurn: () => { },
       mainOtherTurn: () => {
         s.value.bingpai = gameStore.getQipai
+        s.value.fulouCandidates = gameStore.getFulouCandidates
         wsStore.client.callbackMessage({ action: "qipai" })
       },
       tajiaSelfTurn: () => { },
@@ -197,14 +198,23 @@ const mainActions = (() => {
 
   //アガリアクション
   const hulePackage = (() => {
+    const tingpaibuqingMessage=ref("")
     const huleActionHander = (hule: Pai) => {
-      // console.log("huleActionHander,hule",hule.serialize())
-      wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: "main", hule: [hule] })
+      //サブ関数
+      const _tingpaibuqingProcess=()=>{
+        tingpaibuqingMessage.value="フリテンです"
+      }
+
+      //メイン
+      if (_isTingpaiBuqingHule.value) _tingpaibuqingProcess()
+      else wsStore.client.callbackMessage({ action: gameStore.getAction!, turn: "main", hule: [hule] })
     }
     const canMainZimoHule = computed(() => _isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getZimopai != null && gameStore.getHule.map(x => x.serialize(2)).includes(gameStore.getZimopai!.serialize(2)))
     const canMainRongHule = computed(() => !_isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getDapai != null && gameStore.getHule.map(x => x.serialize(2)).includes(gameStore.getDapai!.serialize(2)))
+    const _isTingpaiBuqingHule = computed(() => !_isSelfTurn.value && _isMainShoupai.value && gameStore.getHule.length > 0 && gameStore.getDapai != null && gameStore.getHule.map(x => x.serialize(2)).includes("b0"))
     const cancelRongHule = () => {
       const action = gameStore.getAction
+      tingpaibuqingMessage.value=""
       if (action == null) return
       wsStore.client.callbackMessage({ action: action, turn: gameStore.getTurn! })
     }
@@ -213,7 +223,9 @@ const mainActions = (() => {
       huleActionHander,
       canMainZimoHule,
       canMainRongHule,
-      cancelRongHule
+      cancelRongHule,
+      tingpaibuqingMessage
+
     }
   })()
 
@@ -331,12 +343,13 @@ const mainActions = (() => {
       return []
     })
     const selectLichipai = (payload: { dapai: Pai, dapaiIdx: number }) => {
-        if (isLizhipaiCandidates(payload.dapai)) {
-          selectedLizhi.value = payload.dapai
-          wsStore.client.callbackMessage({ action: gameStore.getAction!,dapai:payload.dapai,  dapaiIdx: payload.dapaiIdx,lizhipai: [selectedLizhi.value as Pai], turn: gameStore.getTurn! })
-          return
-        }
-        return
+      const _lizhiProcess=()=>{
+        selectedLizhi.value = payload.dapai
+        wsStore.client.callbackMessage({ action: gameStore.getAction!,dapai:payload.dapai,  dapaiIdx: payload.dapaiIdx,lizhipai: [selectedLizhi.value as Pai], turn: gameStore.getTurn! })
+      }
+
+      //メイン関数
+      if (isLizhipaiCandidates(payload.dapai)) _lizhiProcess()
     }
     const lizhiActionHandler = () => selectedLizhi.value = Pai.deserialize("b0")
     const initSelectedLizhi = () => selectedLizhi.value = null
@@ -359,7 +372,7 @@ const mainActions = (() => {
       initSelectedLizhi,
       isLizhipaiCandidates,
       canLizhi,
-      cancelLizhi
+      cancelLizhi,
     }
   })();
 
@@ -390,6 +403,7 @@ watch([() => gameStore.getAction], (
   <div class="shoupai" :class="props.position">
     <div class="bingpai">
       <div :class="['main-player-action',]" v-if="_isMainShoupai">
+        <div class="tingpaibuqing-message">{{ mainActions.hule.tingpaibuqingMessage }}</div>
         <PlayerActionView :condition="mainActions.hule.canMainRongHule.value" :display-name="'ロン'" :action-name="'hule'"
           @action-by="mainActions.hule.huleActionHander(gameStore.getDapai!)" />
         <PlayerActionView :condition="mainActions.hule.canMainRongHule.value" :display-name="'×'"
@@ -410,6 +424,8 @@ watch([() => gameStore.getAction], (
           :action-name="'gang'" @action-by="mainActions.fulou.fulouActionHandler('jiagang')" />
         <PlayerActionView :condition="mainActions.lizhi.canLizhi.value" :display-name="'リーチ'" :action-name="'lizhi'"
           @action-by="mainActions.lizhi.lizhiActionHandler" />
+        
+        
       </div>
       <div>
         <PaiView :pai="pai" v-for="([pai,idx]) in s.getBingpai()" :key="pai.id" @click="() => {
@@ -530,6 +546,9 @@ watch([() => gameStore.getAction], (
     opacity: 0.6;
 }
 
+.tingpaibuqing-message{
+  color: red;
+}
 
 
 </style>

@@ -41,14 +41,11 @@ describe("useGameStore", () => {
     gameStore.game.action = "zimo";
     gameStore.game.turn = "main";
     gameStore.game.zimopai = new Pai("b",0);
-    expect(gameStore.mainZimoStatus).toBe(true);
 
     //リー牌判定
     gameStore.game.action = "zimo";
     gameStore.game.turn = "shangjia";
-    expect(gameStore.canLipai('duimian')).toBe(true);
     gameStore.game.action = "dapai";
-    expect(gameStore.canLipai('duimian')).toBe(false);
 
     //暗槓判定
     // gameStore.game.action = "dapai";
