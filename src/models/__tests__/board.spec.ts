@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import { usePai, Pai } from "../pai";
 import { useShoupai, Shoupai, Fulou, createPais } from "../shoupai";
-import { useBoard, Board, GameStatus } from "../board";
+import { useBoard, Board} from "../board";
 import { ref } from "vue";
 import { Score } from "../score";
 import { He } from "../he";

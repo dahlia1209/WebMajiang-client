@@ -57,22 +57,29 @@ npm run test:e2e
 ### デプロイコマンド
 
 ```sh
-#リソース作成・デプロイ
+#リソース作成
 $yyyyMMddHHmm=$(az group list --query "[? contains(name,'webmajiang')].tags.yyyyMMddHHmm" -o tsv)
 $rg=$(az group list --query "[? contains(name,'webmajiang')].name" -o tsv)
 if ([System.String]::IsNullOrEmpty($rg)){
     $yyyyMMddHHmm=$(Get-Date -Format "yyyyMMddHHmm")
     $rg=$(-Join ("webmajiang-", $yyyyMMddHHmm ,"-rg"))
     }
-$location="eastus2"
+$location="westus2"
 $swa=$(-Join ("webmajiang-", $yyyyMMddHHmm ,"-swa"))
-
 az group create --name $rg --location $location --tags "yyyyMMddHHmm=$yyyyMMddHHmm"
-az staticwebapp create -n $swa -g $rg --query "defaultHostname"
-npx swa init --yes
-npx swa build
-npx swa login --resource-group $rg --app-name $swa
-npx swa deploy --env production -n $swa
+az staticwebapp create -n $swa -g $rg -l $location --query "defaultHostname"
 
+#コードデプロイ
+$yyyyMMddHHmm=$(az group list --query "[? contains(name,'webmajiang')].tags.yyyyMMddHHmm" -o tsv)
+$rg=$(az group list --query "[? contains(name,'webmajiang')].name" -o tsv)
+if ([System.String]::IsNullOrEmpty($rg)){
+    $yyyyMMddHHmm=$(Get-Date -Format "yyyyMMddHHmm")
+    $rg=$(-Join ("webmajiang-", $yyyyMMddHHmm ,"-rg"))
+    }
+$swa=$(-Join ("webmajiang-", $yyyyMMddHHmm ,"-swa"))
+$token=az staticwebapp secrets list --name $swa --query "properties.apiKey" -o tsv
+swa build
+#swa deploy -d $token #プレビュー
+swa deploy -d $token --env production #商用
 
 ```

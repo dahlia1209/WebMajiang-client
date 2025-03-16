@@ -5,11 +5,9 @@ import HeView from './He.vue'
 import ScoreView from './Score.vue'
 import HuleView from './Hule.vue'
 import WebsocketHandler from './WebsocketHandler.vue'
-import { usePai, Pai } from '@/models/pai'
 import { type PaiSuit, type PlayerAction, type Position } from "@/models/type"
 import { Shoupai, createPais, Fulou } from "@/models/shoupai";
 import { Board, useBoard } from "@/models/board";
-import { WebSocketMsg,GameContentFormat } from "@/models/websocket";
 import { He } from "@/models/he";
 import { Score } from "@/models/score";
 import { useGameStore } from '@/stores/game'

@@ -4,7 +4,6 @@ import { ref, onMounted, onUnmounted, computed } from "vue";
 import { type Position, type PlayerStatus, type PlayerAction, type Feng } from "@/models/type";
 import { Pai } from "@/models/pai";
 import { Fulou } from "@/models/shoupai";
-import { GameStatus } from "@/models/board";
 import { WebSocketMsg } from "@/models/websocket";
 import {
   useWebSocketService,
