@@ -55,3 +55,7 @@ watch([
 })
 
 </script>
+
+<template>
+  <!-- このコンポーネントは視覚的に何も表示せず、WebSocket通信のみを処理します -->
+</template>
