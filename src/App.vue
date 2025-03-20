@@ -25,7 +25,7 @@ onUnmounted(()=>{
 </script>
 
 <template>
-  <main :class="[gameStore.getIsMobile?'sp-display':'pc-display']">
+  <main >
     <TitleView v-if="gameStore.settings.mode==0" :title="new Settings()" />
     <BoardView v-else-if="gameStore.settings.mode==1" :board="new Board()" />
   </main>
@@ -47,17 +47,6 @@ onUnmounted(()=>{
 <style scoped>
 main {
   position: relative;
-  background: #154;
-}
-
-.pc-display {
-    width: 800px;
-    height: 680px;
-}
-
-.sp-display {
-  width: 100vw; 
-  height: 100vw;
 }
 
 

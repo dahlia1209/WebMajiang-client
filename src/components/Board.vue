@@ -46,18 +46,39 @@ watch([
 </script>
 
 <template>
-  <WebsocketHandler />
-  <HeView v-for="(p, i) in (['main', 'xiajia', 'duimian', 'shangjia'] as Position[])" :he="(b.he[i] as He)"
-    :position="p"
-    :class="[{ 'main-he': p == 'main' }, { 'xiajia-he': p == 'xiajia' }, { 'duimian-he': p == 'duimian' }, { 'shangjia-he': p == 'shangjia' }, 'component']" />
-  <ShoupaiView v-for="(p, i) in (['main', 'xiajia', 'duimian', 'shangjia'] as Position[])"
-    :shoupai="(b.shoupai[i] as Shoupai)" :position="p" 
-    :class="[{ 'main-shoupai': p == 'main' }, { 'xiajia-shoupai': p == 'xiajia' }, { 'duimian-shoupai': p == 'duimian' }, { 'shangjia-shoupai': p == 'shangjia' }, 'component']"/>
-  <ScoreView :score="new Score()" class="score component" />
-  <HuleView v-if="isHule" />
+  <div :class="[gameStore.getIsMobile?'sp-display':'pc-display']">
+    <WebsocketHandler />
+    <HeView v-for="(p, i) in (['main', 'xiajia', 'duimian', 'shangjia'] as Position[])" :he="(b.he[i] as He)"
+      :position="p"
+      :class="[{ 'main-he': p == 'main' }, { 'xiajia-he': p == 'xiajia' }, { 'duimian-he': p == 'duimian' }, { 'shangjia-he': p == 'shangjia' }, 'component']" />
+    <ShoupaiView v-for="(p, i) in (['main', 'xiajia', 'duimian', 'shangjia'] as Position[])"
+      :shoupai="(b.shoupai[i] as Shoupai)" :position="p"
+      :class="[{ 'main-shoupai': p == 'main' }, { 'xiajia-shoupai': p == 'xiajia' }, { 'duimian-shoupai': p == 'duimian' }, { 'shangjia-shoupai': p == 'shangjia' }, 'component']"/>
+    <ScoreView :score="new Score()" class="score component" />
+    <HuleView v-if="isHule" />
+  </div>
 </template>
 
 <style scoped>
+.pc-display {
+  position: relative;
+  background: #154;
+  max-width: 800px;
+  max-height: 680px;
+  width: 100vw; 
+  height: 100vw;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sp-display {
+  position: relative;
+  background: #154;
+  width: 100vw; 
+  height: 100vw;
+}
+
+
 .shoupai {
   display: flex;
   width: auto;
