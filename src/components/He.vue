@@ -14,6 +14,7 @@ const props = defineProps<{
 const h = useHe(props.he)
 const gameStore = useGameStore()
 const lizhiIndex = ref(-1)
+const scaleSize=computed(()=>Math.min(gameStore.windowWidth/2000,0.40))
 
 //ヘルパー関数
 const _isMainShoupai=computed(()=>props.position=="main")
@@ -144,7 +145,7 @@ watch([()=>gameStore.getAction,]
 .he {
     display: flex;
     width: auto;
-    zoom: 0.4;
+    zoom: v-bind('scaleSize');
 }
 
 .grid {

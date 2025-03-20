@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {onMounted, onUnmounted, ref} from 'vue'
 import { Score } from "@/models/score";
 import { usePai, Pai } from '@/models/pai'
 import { Board } from '@/models/board'
@@ -12,10 +12,20 @@ import { useGameStore } from '@/stores/game'
 const selectedMode=ref(0)
 const gameStore = useGameStore()
 
+
+onMounted(()=>{
+  gameStore.updateInnerWidth()
+  window.addEventListener('resize', gameStore.updateInnerWidth)
+})
+
+onUnmounted(()=>{
+  window.removeEventListener('resize',gameStore.updateInnerWidth)
+})
+
 </script>
 
 <template>
-  <main>
+  <main :class="[gameStore.getIsMobile?'sp-display':'pc-display']">
     <TitleView v-if="gameStore.settings.mode==0" :title="new Settings()" />
     <BoardView v-else-if="gameStore.settings.mode==1" :board="new Board()" />
   </main>
@@ -36,10 +46,18 @@ const gameStore = useGameStore()
 
 <style scoped>
 main {
-  width: 800px;
-  height: 680px;
   position: relative;
   background: #154;
+}
+
+.pc-display {
+    width: 800px;
+    height: 680px;
+}
+
+.sp-display {
+  width: 100vw; 
+  height: 100vw;
 }
 
 

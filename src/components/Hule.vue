@@ -2,9 +2,11 @@
 import type { Position } from '@/models/type';
 import { useGameStore } from '@/stores/game'
 import { useWebSocketStore } from '@/stores/websocket'
+import { computed } from 'vue';
 
 const gameStore = useGameStore()
 const wsStore = useWebSocketStore();
+const scaleSize=computed(()=>Math.min(gameStore.windowWidth/800,1))
 
 const clickHandle=()=>{
   wsStore.client.callbackMessage({action:gameStore.getAction!,turn:gameStore.getTurn!})
@@ -62,8 +64,6 @@ const clickHandle=()=>{
 
 <style scoped>
 .hule-dialog{
-    width: 800px;
-    height: 680px;
     position: absolute;
     display: flex;
     color: #fff;

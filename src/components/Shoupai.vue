@@ -457,11 +457,6 @@ watch([() => gameStore.getAction], (
 </template>
 
 <style scoped>
-.shoupai {
-  display: flex;
-  width: auto;
-  zoom: 0.45;
-}
 
 .dapai{
   padding-left: 40px;

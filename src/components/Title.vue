@@ -15,7 +15,7 @@ const kaiju=()=>{
 </script>
 
 <template>
-    <div class="title-container">
+    <div >
         <img src="../assets/titleImg.svg" class="title-image" />
         <button @click="kaiju()" class="testplay">テストプレイ</button>
     </div>
@@ -26,6 +26,11 @@ const kaiju=()=>{
     position: relative;
     width: 800px;
     height: 680px;
+}
+
+.sp-title-container {
+    position: relative;
+    width: 100%;
 }
 
 .title-image {

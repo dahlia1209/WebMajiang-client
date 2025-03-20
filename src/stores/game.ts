@@ -12,6 +12,9 @@ export const useGameStore = defineStore("game", {
     game: new GameContentFormat(),
     score: new Score(),
     settings: new Settings(),
+    isMobile:false,
+    windowWidth:0,
+    MOBILE_WIDTH:768,
   }),
   getters: {
     getDapai:(state)=>state.game.dapai ==null ? null : Pai.deserialize(state.game.dapai.serialize()),
@@ -26,6 +29,7 @@ export const useGameStore = defineStore("game", {
     getFulouCandidates:(state)=>state.game.fulouCandidates.map(x=>Fulou.deserialize(x.serialize())),
     getScore:(state)=>new Score({baopai:state.score.baopai as Pai[]}),
     getBaopai:(state)=>state.game.baopai ==null ? null : Pai.deserialize(state.game.baopai.serialize()),
+    getIsMobile:(state)=>state.windowWidth<state.MOBILE_WIDTH
   },
   actions: {
     isLizhi(position: Position) {
@@ -36,6 +40,9 @@ export const useGameStore = defineStore("game", {
         this.game.dapai != null
       );
     },
+    updateInnerWidth() {
+      this.windowWidth = window.innerWidth ;
+    }
 
   },
 });

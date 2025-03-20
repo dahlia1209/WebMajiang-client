@@ -4,7 +4,7 @@ import { Score, useScore } from "@/models/score";
 import { type PlayerAction, type Position } from "@/models/type";
 import PaiView from '../components/Pai.vue'
 import { useGameStore } from '@/stores/game'
-import { watchEffect, ref, onMounted,watch } from 'vue';
+import { watchEffect, ref, onMounted,watch ,computed} from 'vue';
 
 const props = defineProps<{
     score: Score,
@@ -15,6 +15,8 @@ onMounted(() => {
 
 const s = useScore(props.score)
 const gameStore = useGameStore()
+
+const scaleSize=computed(()=>Math.min(gameStore.windowWidth/800,1))
 
 watchEffect(()=>{
     s.value.jushu=gameStore.score.jushu
@@ -91,6 +93,7 @@ watch([
     flex-direction: column;
     color: white;
     user-select: none;
+    zoom:v-bind('scaleSize')
 }
 
 .changbang img{

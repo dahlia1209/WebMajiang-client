@@ -24,8 +24,8 @@ onMounted(() => {
   gameStore.game = props.board.gameStatus
   gameStore.score = props.board.score
 })
-
 const isHule=computed(()=>gameStore.getAction=="pingju" || gameStore.getAction=="hule")
+const scaleSize=computed(()=>Math.min(gameStore.windowWidth/2000,0.45))
 
 watch([
   () => gameStore.getAction
@@ -61,7 +61,7 @@ watch([
 .shoupai {
   display: flex;
   width: auto;
-  zoom: 0.45;
+  zoom: v-bind('scaleSize');
 }
 
 .component {
@@ -176,4 +176,16 @@ watch([
     flex-wrap: wrap;
   }
 }
+
+.title-container {
+    position: relative;
+    width: 800px;
+    height: 680px;
+}
+
+.sp-title-container {
+    position: relative;
+    width: 100%;
+}
+
 </style>
